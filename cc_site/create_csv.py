@@ -39,7 +39,7 @@ def database_connect(start_date, end_date):
 
 
 def create_csv_file():
-    with open("cc_data.csv", "w", newline='', encoding="windows-1251") as file:
+    with open("cc_data.csv", "w", newline='') as file:
         writer = csv.writer(file)
 
         writer.writerow(
@@ -86,7 +86,7 @@ def get_data_from_database(days_swap):
              }
         )
 
-        with open("cc_data.csv", "a", newline='', encoding="windows-1251") as file:
+        with open("cc_data.csv", "a", newline='') as file:
             writer = csv.writer(file)
 
             writer.writerow(
