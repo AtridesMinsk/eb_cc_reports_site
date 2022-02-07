@@ -8,11 +8,12 @@ from datetime import timedelta, date
 
 
 def database_connect(start_date, end_date):
-    sql_request = (
-        f'SELECT count (*), AVG (ts_servicing), AVG (ts_waiting), AVG (ts_polling)'
-        f'FROM public.callcent_queuecalls WHERE time_start AT TIME ZONE '
-        f'\'UTC+3\' > \'{start_date}\' AND time_start AT TIME ZONE \'UTC+3\' < \'{end_date}\''
-        f'AND ts_servicing != \'00:00:00\'')
+    sql_request = (f'SELECT count (*) AS Call_count, DATE_TRUNC(\'second\', AVG (ts_servicing + interval \'500 '
+                   f'millisecond\')), DATE_TRUNC(\'second\', AVG (ts_waiting + interval \'500 millisecond\')), '
+                   f'DATE_TRUNC(\'second\', AVG (ts_polling + interval \'500 millisecond\')) FROM '
+                   f'public.callcent_queuecalls WHERE time_start AT TIME ZONE \'UTC+3\' > \'{start_date}\' AND '
+                   f'time_start AT TIME ZONE \'UTC+3\' < \'{end_date}\' AND ts_servicing != \'00:00:00\'')
+
     try:
         connection = psycopg2.connect(database=database,
                                       user=user,
