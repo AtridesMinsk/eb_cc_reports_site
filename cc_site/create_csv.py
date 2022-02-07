@@ -4,7 +4,7 @@ import psycopg2
 from connect_db import pros_password as password, prod_host as host, user, database, port
 
 from psycopg2 import Error
-from datetime import timedelta, datetime, date
+from datetime import timedelta, date
 
 
 def database_connect(start_date, end_date):
@@ -39,7 +39,7 @@ def database_connect(start_date, end_date):
 
 
 def create_csv_file():
-    with open("cc_data.csv", "w", newline='') as file:
+    with open("cc_data.csv", "w", newline='', encoding="windows-1251") as file:
         writer = csv.writer(file)
 
         writer.writerow(
@@ -90,7 +90,7 @@ def get_data_from_database(days_swap):
              }
         )
 
-        with open("cc_data.csv", "a", newline='') as file:
+        with open("cc_data.csv", "a", newline='', encoding="windows-1251") as file:
             writer = csv.writer(file)
 
             writer.writerow(
