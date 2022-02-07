@@ -1,7 +1,7 @@
 import csv
 import time
 import psycopg2
-from connect_db import pros_password as password, prod_host as host, user, database, port
+from connect_db import prod_password as password, prod_host as host, user, database, port
 
 from psycopg2 import Error
 from datetime import timedelta, date
@@ -13,7 +13,6 @@ def database_connect(start_date, end_date):
         f'FROM public.callcent_queuecalls WHERE time_start AT TIME ZONE '
         f'\'UTC+3\' > \'{start_date}\' AND time_start AT TIME ZONE \'UTC+3\' < \'{end_date}\''
         f'AND ts_servicing != \'00:00:00\'')
-    # print('\n', sql_request)
     try:
         connection = psycopg2.connect(database=database,
                                       user=user,
@@ -54,16 +53,13 @@ def create_csv_file():
 def get_data_from_database(days_swap):
     for i in range(0, days_swap):
         today_date = date.today() - timedelta(days=i)
-        # print("Сегодня:", today_date)
         yesterday_date = date.today() - timedelta(days=i + 1)
-        # print("Вчера:", yesterday_date)
 
         date_start = time.strptime(f'{yesterday_date}', '%Y-%m-%d')
         date_start_text = time.strftime('%Y-%m-%d', date_start)
 
         date_end = time.strptime(f'{today_date}', '%Y-%m-%d')
         date_end_text = time.strftime('%Y-%m-%d', date_end)
-        id_task = i
 
         data_to_csv = []
 
@@ -75,7 +71,6 @@ def get_data_from_database(days_swap):
               "\n" "Среднее время ответа оператора:", results[3], "\n"
               )
 
-        task_id = int(id_task)
         call_count = results[0]
         average_call_time = results[1]
         average_time_ivr = results[2]
