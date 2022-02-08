@@ -20,7 +20,6 @@ def average_call_rep(request):
         reader = csv.reader(csv_file, dialect='excel')
         for row in reader:
             svc_data.append(row)
-            # print(type(svc_data))
     return render(request, 'cc_reports/calls_rep.html', {'title': 'Статистика', 'reader': svc_data})
 
 

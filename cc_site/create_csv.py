@@ -44,10 +44,10 @@ def create_csv_file():
 
         writer.writerow(
             ("Дата",
-             "Количество звонков",
-             "Среднее время звонка",
+             "Кол-во вх.звонков (Answered)",
+             "Ср.время разговора (Av. talking time)",
              "Среднее время IVR",
-             "Среднее время ответа оператора")
+             "Ср.время ожидания у оператора (Av.ringing time)")
         )
 
 
@@ -66,10 +66,10 @@ def get_data_from_database(days_swap):
 
         results = database_connect(date_start_text, date_end_text)
         print("\n"  "Дата:", date_start_text,
-              "\n" "Количество звонков:", results[0],
-              "\n" "Среднее время звонка:", results[1],
+              "\n" "Кол-во вх.звонков (Answered):", results[0],
+              "\n" "Ср.время разговора (Av. talking time):", results[1],
               "\n" "Среднее время IVR:", results[2],
-              "\n" "Среднее время ответа оператора:", results[3], "\n"
+              "\n" "Ср.время ожидания у оператора (Av.ringing time):", results[3], "\n"
               )
 
         call_count = results[0]
@@ -79,10 +79,10 @@ def get_data_from_database(days_swap):
 
         data_to_csv.append(
             {"Дата:": date_start_text,
-             "Количество звонков:": call_count,
-             "Среднее время звонка:": average_call_time,
+             "Кол-во вх.звонков (Answered):": call_count,
+             "Ср.время разговора (Av. talking time):": average_call_time,
              "Среднее время IVR:": average_time_ivr,
-             "Среднее время ответа оператора:": average_ringing_time
+             "Ср.время ожидания у оператора (Av.ringing time):": average_ringing_time
              }
         )
 
