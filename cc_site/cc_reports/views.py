@@ -26,7 +26,7 @@ def average_call_rep(request):
     return render(request, 'cc_reports/calls_rep.html', {'title': 'Статистика', 'reader': svc_data})
 
 
-def get_data_from_database(call_id):
+def get_data_drop_call(call_id):
     sql_request = (f'SELECT callcent_ag_dropped_calls.ag_num, callcent_ag_dropped_calls.time_start, '
                    f'callcent_ag_dropped_calls.time_end, DATE_TRUNC(\'second\', callcent_ag_dropped_calls.ts_polling '
                    f'+ interval \'500 millisecond\'), '
@@ -59,8 +59,9 @@ def get_data_from_database(call_id):
     return drop_calls_rep
 
 
-def correct_data(drop_calls_rep):
+def cor_data_drop_call(drop_calls_rep):
     results = drop_calls_rep
+    row_count = len(results)
 
     with open("cc_drop_call.csv", "w", newline='') as file:
         writer = csv.writer(file)
@@ -75,58 +76,36 @@ def correct_data(drop_calls_rep):
              "Номер абонента:"
              )
         )
+    for row in range(0, row_count):
+        user_id = results[row][0]
+        ringing_start = results[row][1]
+        ringing_stop = results[row][2]
+        ringing_duration = results[row][3]
+        call_result = results[row][4]
+        call_id = results[row][5]
+        subscriber_number = results[row][6]
 
-    user_id = results[0][0]
-    ringing_start = results[0][1]
-    ringing_stop = results[0][2]
-    ringing_duration = results[0][3]
-    call_result = results[0][4]
-    call_id = results[0][5]
-    subscriber_number = results[0][6]
+        with open("cc_drop_call.csv", "a", newline='') as file:
+            writer = csv.writer(file)
 
-    with open("cc_drop_call.csv", "a", newline='') as file:
-        writer = csv.writer(file)
-
-        writer.writerow(
-            (
-                user_id,
-                ringing_start,
-                ringing_stop,
-                ringing_duration,
-                call_result,
-                call_id,
-                subscriber_number
+            writer.writerow(
+                (
+                    user_id,
+                    ringing_start,
+                    ringing_stop,
+                    ringing_duration,
+                    call_result,
+                    call_id,
+                    subscriber_number
+                )
             )
-        )
-
-    user_id = results[1][0]
-    ringing_start = results[1][1]
-    ringing_stop = results[1][2]
-    ringing_duration = results[1][3]
-    call_result = results[1][4]
-    call_id = results[1][5]
-    subscriber_number = results[1][6]
-
-    with open("cc_drop_call.csv", "a", newline='') as file:
-        writer = csv.writer(file)
-
-        writer.writerow(
-            (
-                user_id,
-                ringing_start,
-                ringing_stop,
-                ringing_duration,
-                call_result,
-                call_id,
-                subscriber_number
-            )
-        )
 
 
-def call_drop(request):
-    call_history_id = "0000017EBB056D7E_390"
-    data = get_data_from_database(call_history_id)
-    correct_data(data)
+def drop_call(request):
+    call_history_id = "0000017D9E90D66C_392"
+    drop_call_data = get_data_drop_call(call_history_id)
+    print("Найдено записей в базе:", len(drop_call_data))
+    cor_data_drop_call(drop_call_data)
     svc_data = []
     with open('cc_drop_call.csv', 'rU') as csv_file:
         reader = csv.reader(csv_file, dialect='excel')

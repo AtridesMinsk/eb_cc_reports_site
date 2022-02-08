@@ -19,7 +19,7 @@ from . import views
 urlpatterns = [
     path('', views.index, name='home'),
     path('call_rep', views.average_call_rep, name='call_rep'),
-    path('call_drop', views.call_drop, name='call_drop'),
+    path('call_drop', views.drop_call, name='call_drop'),
     path('all_call_drop', views.all_drop_call, name='all_call_drop'),
     path('about', views.about, name='about'),
 ]
