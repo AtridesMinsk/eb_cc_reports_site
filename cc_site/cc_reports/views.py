@@ -46,8 +46,7 @@ def get_data_from_database(call_id):
         cursor_call_count = connection.cursor()
         cursor_call_count.execute(str(sql_request))
 
-        drop_calls_rep = cursor_call_count.fetchone()
-        drop_calls_rep2 = cursor_call_count.fetchone()
+        drop_calls_rep = cursor_call_count.fetchall()
 
     except (Exception, Error) as error:
         print("Ошибка при работе с PostgreSQL", error)
@@ -57,7 +56,7 @@ def get_data_from_database(call_id):
             cursor_call_count.close()
             connection.close()
 
-    return drop_calls_rep, drop_calls_rep2
+    return drop_calls_rep
 
 
 def correct_data(drop_calls_rep):
@@ -134,6 +133,92 @@ def call_drop(request):
         for row in reader:
             svc_data.append(row)
     return render(request, 'cc_reports/calls_drop.html', {'reader': svc_data})
+
+
+def get_data_all_drop_call():
+    sql_request = (
+        f'SELECT callcent_ag_dropped_calls.ag_num, callcent_ag_dropped_calls.time_start, '
+        f'callcent_ag_dropped_calls.time_end, DATE_TRUNC(\'second\', callcent_ag_dropped_calls.ts_polling + interval '
+        f'\'500 millisecond\'), callcent_ag_dropped_calls.reason_noanswerdesc, '
+        f'callcent_ag_dropped_calls.q_call_history_id FROM callcent_ag_dropped_calls WHERE reason_noanswerdesc = '
+        f'\'Poll expired\' AND time_start AT TIME ZONE \'UTC+3\' > \'2021-08-01\' ORDER BY '
+        f'idcallcent_ag_dropped_calls ASC '
+    )
+
+    try:
+        connection = psycopg2.connect(database=database,
+                                      user=user,
+                                      password=password,
+                                      host=host,
+                                      port=port
+                                      )
+
+        cursor_call_count = connection.cursor()
+        cursor_call_count.execute(str(sql_request))
+
+        drop_calls_rep = cursor_call_count.fetchall()
+
+    except (Exception, Error) as error:
+        print("Ошибка при работе с PostgreSQL", error)
+
+    finally:
+        if connection:
+            cursor_call_count.close()
+            connection.close()
+
+    return drop_calls_rep
+
+
+def cor_data_all_drop_call(date_from_db):
+    results = date_from_db
+    row_count = len(results)
+
+    with open("cc_all_drop_call.csv", "w", newline='') as file:
+        writer = csv.writer(file)
+
+        writer.writerow(
+            ("Оператор ID:",
+             "Начало вызова:",
+             "Конец вызова:",
+             "Продолжительность вызова:",
+             "Статус вызова:",
+             "Идентификатор вызова:",
+             )
+        )
+
+    for row in range(0, row_count):
+        user_id = results[row][0]
+        ringing_start = results[row][1]
+        ringing_stop = results[row][2]
+        ringing_duration = results[row][3]
+        call_result = results[row][4]
+        call_id = results[row][5]
+
+        with open("cc_all_drop_call.csv", "a", newline='') as file:
+            writer = csv.writer(file)
+
+            writer.writerow(
+                (
+                    user_id,
+                    ringing_start,
+                    ringing_stop,
+                    ringing_duration,
+                    call_result,
+                    call_id,
+                )
+            )
+
+
+def all_drop_call(request):
+    dropped_calls = get_data_all_drop_call()
+    print("Найдено записей в базе:", len(dropped_calls))
+    cor_data_all_drop_call(dropped_calls)
+    svc_data = []
+    with open('cc_all_drop_call.csv', 'rU') as csv_file:
+        reader = csv.reader(csv_file, dialect='excel')
+        for row in reader:
+            svc_data.append(row)
+    return render(request, 'cc_reports/all_calls_drop.html', {'reader': svc_data})
 
 
 def create(request):
