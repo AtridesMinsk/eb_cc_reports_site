@@ -7,6 +7,19 @@ from psycopg2 import Error
 from datetime import timedelta, date
 
 
+def create_csv_file():
+    with open("cc_data.csv", "w", newline='') as file:
+        writer = csv.writer(file)
+
+        writer.writerow(
+            ("Дата",
+             "Кол-во вх.звонков (Answered)",
+             "Ср.время разговора (Av. talking time)",
+             "Среднее время IVR",
+             "Ср.время ожидания у оператора (Av.ringing time)")
+        )
+
+
 def database_connect(start_date, end_date):
     sql_request = (f'SELECT count (*) AS Call_count, DATE_TRUNC(\'second\', AVG (ts_servicing + interval \'500 '
                    f'millisecond\')), DATE_TRUNC(\'second\', AVG (ts_waiting + interval \'500 millisecond\')), '
@@ -38,19 +51,6 @@ def database_connect(start_date, end_date):
     return call_count
 
 
-def create_csv_file():
-    with open("cc_data.csv", "w", newline='') as file:
-        writer = csv.writer(file)
-
-        writer.writerow(
-            ("Дата",
-             "Кол-во вх.звонков (Answered)",
-             "Ср.время разговора (Av. talking time)",
-             "Среднее время IVR",
-             "Ср.время ожидания у оператора (Av.ringing time)")
-        )
-
-
 def get_data_from_database(days_swap):
     for i in range(0, days_swap):
         today_date = date.today() - timedelta(days=i)
@@ -62,29 +62,12 @@ def get_data_from_database(days_swap):
         date_end = time.strptime(f'{today_date}', '%Y-%m-%d')
         date_end_text = time.strftime('%Y-%m-%d', date_end)
 
-        data_to_csv = []
-
         results = database_connect(date_start_text, date_end_text)
-        print("\n"  "Дата:", date_start_text,
-              "\n" "Кол-во вх.звонков (Answered):", results[0],
-              "\n" "Ср.время разговора (Av. talking time):", results[1],
-              "\n" "Среднее время IVR:", results[2],
-              "\n" "Ср.время ожидания у оператора (Av.ringing time):", results[3], "\n"
-              )
 
         call_count = results[0]
         average_call_time = results[1]
         average_time_ivr = results[2]
         average_ringing_time = results[3]
-
-        data_to_csv.append(
-            {"Дата:": date_start_text,
-             "Кол-во вх.звонков (Answered):": call_count,
-             "Ср.время разговора (Av. talking time):": average_call_time,
-             "Среднее время IVR:": average_time_ivr,
-             "Ср.время ожидания у оператора (Av.ringing time):": average_ringing_time
-             }
-        )
 
         with open("cc_data.csv", "a", newline='') as file:
             writer = csv.writer(file)

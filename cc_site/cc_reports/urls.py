@@ -19,5 +19,6 @@ from . import views
 urlpatterns = [
     path('', views.index, name='home'),
     path('call_rep', views.average_call_rep, name='call_rep'),
+    path('call_drop', views.call_drop, name='call_drop'),
     path('about', views.about, name='about'),
 ]

@@ -1,0 +1,26 @@
+{% extends 'cc_reports/base.html' %}
+
+{% block title%}
+Страница про нас
+{% endblock %}
+
+{% block content %}
+    <h1>Брошенные звонки</h1>
+    <div class="alert alert-warning mt-2">
+        <table border="0", align="center", cellpadding=5>
+            <col width="120" valign="top">
+            <col width="200" valign="top">
+            <col width="200" valign="top">
+            <col width="150" valign="top">
+            <col width="150" valign="top">
+            <col width="150" valign="top">
+            <col width="150" valign="top">
+            {% for row in reader %}
+                <tr>
+                    {% for x in row %} <td align="center">{{ x }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}
