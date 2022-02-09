@@ -102,8 +102,10 @@ def cor_data_drop_call(drop_calls_rep):
 
 
 def drop_call(request):
-    call_history_id = "0000017EDAE4E87B_120"
-    drop_call_data = get_data_drop_call(call_history_id)
+    call_id = request.GET.get('object')
+    # call_history_id = "0000017EDAE4E87B_120"
+    # drop_call_data = get_data_drop_call(call_history_id)
+    drop_call_data = get_data_drop_call(call_id)
     print("Найдено записей в базе:", len(drop_call_data))
     cor_data_drop_call(drop_call_data)
     svc_data = []

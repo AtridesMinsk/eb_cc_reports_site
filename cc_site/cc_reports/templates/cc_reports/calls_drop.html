@@ -6,6 +6,12 @@
 
 {% block content %}
     <h1>Детализация потеряного звонка</h1>
+    <form method="GET" action="/call_drop">
+        <label for="call_id">Введите идентификатор вызова: </label>
+        <input id="call_id" type="text" name="object" value=""> <!-- В "value=", можно внести значение по умолчанию -->
+        <input type="submit" value="OK">
+    </form>
+
     <div class="alert alert-warning mt-2">
         <table border="0", align="center", cellpadding=5>
             <col width="120" valign="top">
