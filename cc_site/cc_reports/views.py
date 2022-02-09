@@ -18,12 +18,12 @@ def about(request):
 
 
 def average_call_rep(request):
-    svc_data = []
+    csv_data = []
     with open('cc_data.csv', 'rU') as csv_file:
         reader = csv.reader(csv_file, dialect='excel')
         for row in reader:
-            svc_data.append(row)
-    return render(request, 'cc_reports/calls_rep.html', {'title': 'Статистика', 'reader': svc_data})
+            csv_data.append(row)
+    return render(request, 'cc_reports/calls_rep.html', {'title': 'Статистика', 'reader': csv_data})
 
 
 def get_data_drop_call(call_id):
