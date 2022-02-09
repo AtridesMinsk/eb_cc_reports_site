@@ -18,7 +18,7 @@ def create_csv_file():
              "Среднее время IVR (Av. IVR time)",
              "Ср.время ожидания у оператора (Av.ringing time)",
              "Кол-во исх.звонков (Outbound)",
-             "Кол-во не отв.звонков (Cancelled)")
+             "Кол-во не отв.звонков (Abandoned)")
         )
 
 
