@@ -102,7 +102,7 @@ def cor_data_drop_call(drop_calls_rep):
 
 
 def drop_call(request):
-    call_history_id = "0000017D9E90D66C_392"
+    call_history_id = "0000017EDAE4E87B_120"
     drop_call_data = get_data_drop_call(call_history_id)
     print("Найдено записей в базе:", len(drop_call_data))
     cor_data_drop_call(drop_call_data)
@@ -121,7 +121,7 @@ def get_data_all_drop_call():
         f'\'500 millisecond\'), callcent_ag_dropped_calls.reason_noanswerdesc, '
         f'callcent_ag_dropped_calls.q_call_history_id FROM callcent_ag_dropped_calls WHERE reason_noanswerdesc = '
         f'\'Poll expired\' AND time_start AT TIME ZONE \'UTC+3\' > \'2021-08-01\' ORDER BY '
-        f'idcallcent_ag_dropped_calls ASC '
+        f'idcallcent_ag_dropped_calls DESC '
     )
 
     try:

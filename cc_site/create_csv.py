@@ -12,15 +12,53 @@ def create_csv_file():
         writer = csv.writer(file)
 
         writer.writerow(
-            ("Дата",
+            ("Дата (Date)",
              "Кол-во вх.звонков (Answered)",
              "Ср.время разговора (Av. talking time)",
-             "Среднее время IVR",
-             "Ср.время ожидания у оператора (Av.ringing time)")
+             "Среднее время IVR (Av. IVR time)",
+             "Ср.время ожидания у оператора (Av.ringing time)",
+             "Кол-во исх.звонков (Outbound)")
         )
 
 
-def database_connect(start_date, end_date):
+def get_data_outgoing_call(start_date, end_date):
+    sql_request = (f'SELECT count (*) AS Call_count '
+                   f'FROM ((((((cl_segments s '
+                   f'JOIN cl_participants sp ON ((sp.id = s.src_part_id))) '
+                   f'JOIN cl_participants dp ON ((dp.id = s.dst_part_id))) '
+                   f'JOIN cl_party_info si ON ((si.id = sp.info_id))) '
+                   f'JOIN cl_party_info di ON ((di.id = dp.info_id))) '
+                   f'LEFT JOIN cl_participants ap ON ((ap.id = s.action_party_id))) '
+                   f'LEFT JOIN cl_party_info ai ON ((ai.id = ap.info_id))) '
+                   f'WHERE s.start_time AT TIME ZONE \'UTC+3\' > \'{start_date}\' '
+                   f'AND s.end_time AT TIME ZONE \'UTC+3\' < \'{end_date}\' ' 
+                   f'AND s.action_id = 1 AND si.dn_type = 0')
+
+    try:
+        connection = psycopg2.connect(database=database,
+                                      user=user,
+                                      password=password,
+                                      host=host,
+                                      port=port
+                                      )
+
+        cursor_call_count = connection.cursor()
+        cursor_call_count.execute(str(sql_request))
+
+        call_count = cursor_call_count.fetchone()
+
+    except (Exception, Error) as error:
+        print("Ошибка при работе с PostgreSQL", error)
+
+    finally:
+        if connection:
+            cursor_call_count.close()
+            connection.close()
+
+    return call_count
+
+
+def get_data_average_call(start_date, end_date):
     sql_request = (f'SELECT count (*) AS Call_count, DATE_TRUNC(\'second\', AVG (ts_servicing + interval \'500 '
                    f'millisecond\')), DATE_TRUNC(\'second\', AVG (ts_waiting + interval \'500 millisecond\')), '
                    f'DATE_TRUNC(\'second\', AVG (ts_polling + interval \'500 millisecond\')) FROM '
@@ -51,7 +89,7 @@ def database_connect(start_date, end_date):
     return call_count
 
 
-def get_data_from_database(days_swap):
+def cor_data_average_call(days_swap):
     for i in range(0, days_swap):
         today_date = date.today() - timedelta(days=i)
         yesterday_date = date.today() - timedelta(days=i + 1)
@@ -62,12 +100,14 @@ def get_data_from_database(days_swap):
         date_end = time.strptime(f'{today_date}', '%Y-%m-%d')
         date_end_text = time.strftime('%Y-%m-%d', date_end)
 
-        results = database_connect(date_start_text, date_end_text)
+        results_in = get_data_average_call(date_start_text, date_end_text)
+        results_out = get_data_outgoing_call(date_start_text, date_end_text)
 
-        call_count = results[0]
-        average_call_time = results[1]
-        average_time_ivr = results[2]
-        average_ringing_time = results[3]
+        incoming_call_count = results_in[0]
+        average_call_time = results_in[1]
+        average_time_ivr = results_in[2]
+        average_ringing_time = results_in[3]
+        outgoing_call_count = results_out[0]
 
         with open("cc_data.csv", "a", newline='') as file:
             writer = csv.writer(file)
@@ -75,10 +115,11 @@ def get_data_from_database(days_swap):
             writer.writerow(
                 (
                     date_start_text,
-                    call_count,
+                    incoming_call_count,
                     average_call_time,
                     average_time_ivr,
-                    average_ringing_time
+                    average_ringing_time,
+                    outgoing_call_count
                 )
             )
 
@@ -97,7 +138,7 @@ def calculate_days_count():
 def main():
     create_csv_file()
     days_swap = calculate_days_count()
-    get_data_from_database(days_swap)
+    cor_data_average_call(days_swap)
 
 
 if __name__ == '__main__':
