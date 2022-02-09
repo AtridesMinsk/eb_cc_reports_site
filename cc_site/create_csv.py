@@ -17,8 +17,40 @@ def create_csv_file():
              "Ср.время разговора (Av. talking time)",
              "Среднее время IVR (Av. IVR time)",
              "Ср.время ожидания у оператора (Av.ringing time)",
-             "Кол-во исх.звонков (Outbound)")
+             "Кол-во исх.звонков (Outbound)",
+             "Кол-во не отв.звонков (Cancelled)")
         )
+
+
+def get_data_cancelled_call(start_date, end_date):
+    sql_request =(f'SELECT count (*) AS Call_count '
+                  f'FROM callcent_ag_dropped_calls '
+                  f'WHERE time_start AT TIME ZONE \'UTC+3\' > \'{start_date}\' '
+                  f'AND time_end AT TIME ZONE \'UTC+3\' < \'{end_date}\' '
+                  f'AND reason_noanswerdesc = \'Cancelled\' ')
+
+    try:
+        connection = psycopg2.connect(database=database,
+                                      user=user,
+                                      password=password,
+                                      host=host,
+                                      port=port
+                                      )
+
+        cursor_call_count = connection.cursor()
+        cursor_call_count.execute(str(sql_request))
+
+        call_count = cursor_call_count.fetchone()
+
+    except (Exception, Error) as error:
+        print("Ошибка при работе с PostgreSQL", error)
+
+    finally:
+        if connection:
+            cursor_call_count.close()
+            connection.close()
+
+    return call_count
 
 
 def get_data_outgoing_call(start_date, end_date):
@@ -102,12 +134,14 @@ def cor_data_average_call(days_swap):
 
         results_in = get_data_average_call(date_start_text, date_end_text)
         results_out = get_data_outgoing_call(date_start_text, date_end_text)
+        results_can = get_data_cancelled_call(date_start_text, date_end_text)
 
         incoming_call_count = results_in[0]
         average_call_time = results_in[1]
         average_time_ivr = results_in[2]
         average_ringing_time = results_in[3]
         outgoing_call_count = results_out[0]
+        cancelled_call_count = results_can[0]
 
         with open("cc_data.csv", "a", newline='') as file:
             writer = csv.writer(file)
@@ -119,7 +153,8 @@ def cor_data_average_call(days_swap):
                     average_call_time,
                     average_time_ivr,
                     average_ringing_time,
-                    outgoing_call_count
+                    outgoing_call_count,
+                    cancelled_call_count
                 )
             )
 
