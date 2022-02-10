@@ -2,6 +2,7 @@ import csv
 
 import psycopg2
 from django.shortcuts import render, redirect
+from django.core.paginator import Paginator
 from connect_db import prod_password as password, prod_host as host, user, database, port
 
 
@@ -19,7 +20,11 @@ def average_call_rep(request):
         reader = csv.reader(csv_file, dialect='excel')
         for row in reader:
             csv_data.append(row)
-    return render(request, 'cc_reports/calls_rep.html', {'title': 'Звонки за сутки', 'reader': csv_data})
+    objects = csv_data
+    p = Paginator(objects, 20)
+    page1 = p.page(1)
+    page2 = p.page(2)
+    return render(request, 'cc_reports/calls_rep.html', {'title': 'Звонки по дням', 'reader': page1.object_list})
 
 
 def get_data_drop_call(call_id):
