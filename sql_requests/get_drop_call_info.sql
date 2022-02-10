@@ -1,7 +1,8 @@
 SELECT 
 callcent_ag_dropped_calls.ag_num, 
-callcent_ag_dropped_calls.time_start, 
-callcent_ag_dropped_calls.time_end, DATE_TRUNC('second', callcent_ag_dropped_calls.ts_polling + interval '500 millisecond'), 
+callcent_ag_dropped_calls.time_start AT TIME ZONE 'UTC+3', 
+callcent_ag_dropped_calls.time_end AT TIME ZONE 'UTC+3', 
+DATE_TRUNC('second', callcent_ag_dropped_calls.ts_polling + interval '500 millisecond'), 
 callcent_ag_dropped_calls.reason_noanswerdesc,
 callcent_ag_dropped_calls.q_call_history_id, 
 callcent_queuecalls.from_userpart

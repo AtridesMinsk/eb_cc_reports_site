@@ -14,7 +14,7 @@ def index(request):
 
 
 def about(request):
-    return render(request, 'cc_reports/about.html')
+    return render(request, 'cc_reports/about.html', {'title': 'О нас'})
 
 
 def average_call_rep(request):
@@ -23,13 +23,14 @@ def average_call_rep(request):
         reader = csv.reader(csv_file, dialect='excel')
         for row in reader:
             csv_data.append(row)
-    return render(request, 'cc_reports/calls_rep.html', {'title': 'Статистика', 'reader': csv_data})
+    return render(request, 'cc_reports/calls_rep.html', {'title': 'Звонки за сутки', 'reader': csv_data})
 
 
 def get_data_drop_call(call_id):
-    sql_request = (f'SELECT callcent_ag_dropped_calls.ag_num, callcent_ag_dropped_calls.time_start, '
-                   f'callcent_ag_dropped_calls.time_end, DATE_TRUNC(\'second\', callcent_ag_dropped_calls.ts_polling '
-                   f'+ interval \'500 millisecond\'), '
+    sql_request = (f'SELECT callcent_ag_dropped_calls.ag_num, '
+                   f'callcent_ag_dropped_calls.time_start AT TIME ZONE \'UTC+3\', '
+                   f'callcent_ag_dropped_calls.time_end AT TIME ZONE \'UTC+3\', '
+                   f'DATE_TRUNC(\'second\', callcent_ag_dropped_calls.ts_polling + interval \'500 millisecond\'), '
                    f'callcent_ag_dropped_calls.reason_noanswerdesc, callcent_ag_dropped_calls.q_call_history_id, '
                    f'callcent_queuecalls.from_userpart FROM callcent_ag_dropped_calls LEFT JOIN callcent_queuecalls '
                    f'ON callcent_queuecalls.call_history_id = q_call_history_id WHERE q_call_history_id = '
@@ -111,13 +112,14 @@ def drop_call(request):
         reader = csv.reader(csv_file, dialect='excel')
         for row in reader:
             svc_data.append(row)
-    return render(request, 'cc_reports/calls_drop.html', {'reader': svc_data})
+    return render(request, 'cc_reports/calls_drop.html', {'title': 'Детализация потеряного звонка', 'reader': svc_data})
 
 
 def get_data_all_drop_call():
     sql_request = (
-        f'SELECT callcent_ag_dropped_calls.ag_num, callcent_ag_dropped_calls.time_start, '
-        f'callcent_ag_dropped_calls.time_end, DATE_TRUNC(\'second\', callcent_ag_dropped_calls.ts_polling + interval '
+        f'SELECT callcent_ag_dropped_calls.ag_num, callcent_ag_dropped_calls.time_start AT TIME ZONE \'UTC+3\', '
+        f'callcent_ag_dropped_calls.time_end AT TIME ZONE \'UTC+3\', '
+        f'DATE_TRUNC(\'second\', callcent_ag_dropped_calls.ts_polling + interval '
         f'\'500 millisecond\'), callcent_ag_dropped_calls.reason_noanswerdesc, '
         f'callcent_ag_dropped_calls.q_call_history_id FROM callcent_ag_dropped_calls WHERE reason_noanswerdesc = '
         f'\'Poll expired\' AND time_start AT TIME ZONE \'UTC+3\' > \'2021-08-01\' ORDER BY '
@@ -197,7 +199,7 @@ def all_drop_call(request):
         reader = csv.reader(csv_file, dialect='excel')
         for row in reader:
             svc_data.append(row)
-    return render(request, 'cc_reports/all_calls_drop.html', {'reader': svc_data})
+    return render(request, 'cc_reports/all_calls_drop.html', {'title': 'Все потерянные звонки','reader': svc_data})
 
 
 def create(request):
