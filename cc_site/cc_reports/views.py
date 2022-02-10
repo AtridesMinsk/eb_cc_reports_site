@@ -92,8 +92,8 @@ def cor_data_drop_call(drop_calls_rep):
             writer.writerow(
                 (
                     user_id,
-                    ringing_start,
-                    ringing_stop,
+                    ringing_start.strftime('%m.%d.%Y %H:%M'),
+                    ringing_stop.strftime('%m.%d.%Y %H:%M'),
                     ringing_duration,
                     call_result,
                     call_id,
@@ -181,8 +181,8 @@ def cor_data_all_drop_call(date_from_db):
             writer.writerow(
                 (
                     user_id,
-                    ringing_start,
-                    ringing_stop,
+                    ringing_start.strftime('%m.%d.%Y %H:%M'),
+                    ringing_stop.strftime('%m.%d.%Y %H:%M'),
                     ringing_duration,
                     call_result,
                     call_id,
