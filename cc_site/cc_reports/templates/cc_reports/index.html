@@ -6,4 +6,11 @@
 
 {% block content %}
     <h1>Главная страница</h1>
+
+var chart_data = [
+    {% for row in chart_data %}
+    [{{ row.0 }}, {{ row.1 }}],
+    {% endfor %}
+]
+
 {% endblock %}

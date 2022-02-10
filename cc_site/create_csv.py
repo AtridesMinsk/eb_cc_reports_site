@@ -64,7 +64,7 @@ def get_data_outgoing_call(start_date, end_date):
                    f'LEFT JOIN cl_party_info ai ON ((ai.id = ap.info_id))) '
                    f'WHERE s.start_time AT TIME ZONE \'UTC-3\' > \'{start_date}\' '
                    f'AND s.end_time AT TIME ZONE \'UTC-3\' < \'{end_date}\' ' 
-                   f'AND s.action_id = 1 AND si.dn_type = 0')
+                   f'AND s.action_id = 1 AND si.dn_type = 0 AND seq_order = 1')
 
     try:
         connection = psycopg2.connect(database=database,
