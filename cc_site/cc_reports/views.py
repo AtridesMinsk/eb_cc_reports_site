@@ -2,15 +2,11 @@ import csv
 
 import psycopg2
 from django.shortcuts import render, redirect
-from .models import Tasks
-from .forms import TaskForm
 from connect_db import prod_password as password, prod_host as host, user, database, port
 
 
-# Create your views here.
 def index(request):
-    tasks = Tasks.objects.all()
-    return render(request, 'cc_reports/index.html', {'title': 'Главная страница сайта', 'tasks': tasks})
+    return render(request, 'cc_reports/index.html')
 
 
 def about(request):
@@ -200,21 +196,3 @@ def all_drop_call(request):
         for row in reader:
             svc_data.append(row)
     return render(request, 'cc_reports/all_calls_drop.html', {'title': 'Все потерянные звонки','reader': svc_data})
-
-
-def create(request):
-    error = ''
-    if request.method == 'POST':
-        form = TaskForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('home')
-        else:
-            error = 'Неверная форма'
-
-    form = TaskForm()
-    context = {
-        'form': form,
-        'error': error
-    }
-    return render(request, 'cc_reports/create.html', context)
