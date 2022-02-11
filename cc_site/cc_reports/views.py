@@ -20,7 +20,7 @@ def average_call_rep(request):
         reader = csv.reader(csv_file, dialect='excel')
         for row in reader:
             csv_data.append(row)
-    paginator = Paginator(csv_data, 9)
+    paginator = Paginator(csv_data, 8)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request, 'cc_reports/calls_rep.html', {'title': 'Звонки по дням', 'reader': page_obj.object_list, 'page_obj': page_obj})
@@ -179,7 +179,7 @@ def all_drop_call(request):
         reader = csv.reader(csv_file, dialect='excel')
         for row in reader:
             csv_data.append(row)
-    paginator = Paginator(csv_data, 9)
+    paginator = Paginator(csv_data, 8)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request, 'cc_reports/all_calls_drop.html', {'title': 'Все потерянные звонки', 'reader': page_obj.object_list, 'page_obj': page_obj})
