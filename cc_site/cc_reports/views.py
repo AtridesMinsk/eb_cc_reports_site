@@ -19,7 +19,8 @@ def average_call_rep(request):
     paginator = Paginator(csv_data, 8)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, 'cc_reports/calls_rep.html', {'title': 'Звонки по дням', 'reader': page_obj.object_list, 'page_obj': page_obj})
+    return render(request, 'cc_reports/calls_rep.html',
+                  {'title': 'Звонки по дням', 'reader': page_obj.object_list, 'page_obj': page_obj})
 
 
 def get_data_drop_call(call_id):
@@ -59,7 +60,8 @@ def get_data_drop_call(call_id):
 def drop_call(request):
     call_id = request.GET.get('object')
     drop_call_data = get_data_drop_call(call_id)
-    return render(request, 'cc_reports/calls_drop.html', {'title': 'Детализация потеряного звонка', 'reader': drop_call_data})
+    return render(request, 'cc_reports/calls_drop.html',
+                  {'title': 'Детализация потеряного звонка', 'reader': drop_call_data})
 
 
 def get_data_all_drop_call():
@@ -102,20 +104,30 @@ def all_drop_call(request):
     paginator = Paginator(dropped_calls, 8)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, 'cc_reports/all_calls_drop.html', {'title': 'Все потерянные звонки', 'reader': page_obj.object_list, 'page_obj': page_obj})
+    return render(request, 'cc_reports/all_calls_drop.html',
+                  {'title': 'Все потерянные звонки', 'reader': page_obj.object_list, 'page_obj': page_obj})
 
 
 def get_data_calls_by_operator():
     sql_request = (
-        f'WITH Call_in AS ( '
-        f'SELECT to_dn AS Operator_ID, count (*) AS Calls_by_Operator_in '
+        f'WITH '
+        f'Canceled_calls AS ( '
+        f'SELECT count (*) AS Call_count, ag_num '
+        f'FROM callcent_ag_dropped_calls '
+        f'WHERE time_start AT TIME ZONE \'UTC+3\' > \'2021-08-01\' AND reason_noanswerdesc = \'Cancelled\' AND ag_num '
+        f'!= \'1000\' AND ag_num != \'1001\' AND ag_num != \'9999\' '
+        f'GROUP BY ag_num '
+        f'ORDER BY ag_num '
+        f'), '
+        f'Call_in AS ( '
+        f'SELECT to_dn AS Operator_ID_in, count (*) AS Calls_by_Operator_in '
         f'FROM callcent_queuecalls '
         f'WHERE ts_servicing != \'00:00:00\' AND time_start AT TIME ZONE \'UTC+3\' > \'2021-08-01\' AND to_dn != '
         f'\'1000\' AND to_dn != \'1001\' AND to_dn != \'9999\' '
         f'GROUP BY to_dn '
         f'ORDER BY to_dn ASC '
         f'), '
-        f'Call_out AS (SELECT count (*) AS Calls_by_Operator_out, si.dn AS Operator_ID '
+        f'Call_out AS (SELECT count (*) AS Calls_by_Operator_out, si.dn AS Operator_ID_out '
         f'FROM ((((((cl_segments s '
         f'JOIN cl_participants sp ON ((sp.id = s.src_part_id))) '
         f'JOIN cl_participants dp ON ((dp.id = s.dst_part_id))) '
@@ -127,10 +139,12 @@ def get_data_calls_by_operator():
         f'AND s.action_id = 1 AND si.dn_type = 0 AND seq_order = 1 AND si.dn != \'1000\' AND si.dn != \'1001\' '
         f'GROUP BY si.dn '
         f'ORDER BY si.dn ASC) '
-        f'SELECT Call_in.Operator_ID, Call_in.Calls_by_Operator_in, Call_out.Calls_by_Operator_out '
+        f'SELECT Call_in.Operator_ID_in, Call_in.Calls_by_Operator_in, Call_out.Calls_by_Operator_out, '
+        f'Canceled_calls.Call_count '
         f'FROM Call_in '
-        f'LEFT JOIN Call_out ON Call_in.Operator_ID = Call_out.Operator_ID '
-        )
+        f'INNER JOIN Call_out ON Call_in.Operator_ID_in = Call_out.Operator_ID_out '
+        f'INNER JOIN Canceled_calls ON Call_in.Operator_ID_in = Canceled_calls.ag_num '
+    )
 
     try:
         connection = psycopg2.connect(database=database,
