@@ -1,4 +1,5 @@
-SELECT count (*) AS Call_count, DATE_TRUNC('day', time_start) AS Date_call,
+SELECT count (*) AS Call_count, 
+DATE_TRUNC('day', time_start) AS Date_call,
 DATE_TRUNC('second', AVG (ts_servicing + interval '500 millisecond')) AS Call_time, 
 DATE_TRUNC('second', AVG (ts_waiting + interval '500 millisecond')) AS IVR_time,
 DATE_TRUNC('second', AVG (ts_polling + interval '500 millisecond')) AS Ringing_time

@@ -12,13 +12,7 @@ def create_csv_file():
         writer = csv.writer(file)
 
         writer.writerow(
-            ("Дата (Date)",
-             "Кол-во вх.звонков (Answered)",
-             "Ср.время разговора (Av. talking time)",
-             "Среднее время IVR (Av. IVR time)",
-             "Ср.время ожидания у оператора (Av.ringing time)",
-             "Кол-во исх.звонков (Outbound)",
-             "Кол-во не отв.звонков (Abandoned)")
+            ()
         )
 
 
