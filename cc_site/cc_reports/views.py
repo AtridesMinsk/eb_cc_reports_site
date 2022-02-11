@@ -69,14 +69,7 @@ def cor_data_drop_call(drop_calls_rep):
         writer = csv.writer(file)
 
         writer.writerow(
-            ("Оператор ID:",
-             "Начало вызова:",
-             "Конец вызова:",
-             "Длительность вызова:",
-             "Статус вызова:",
-             "Идентификатор вызова:",
-             "Номер абонента:"
-             )
+            ()
         )
     for row in range(0, row_count):
         user_id = results[row][0]
@@ -159,13 +152,7 @@ def cor_data_all_drop_call(date_from_db):
         writer = csv.writer(file)
 
         writer.writerow(
-            ("Оператор ID:",
-             "Начало вызова:",
-             "Конец вызова:",
-             "Продолжительность вызова:",
-             "Статус вызова:",
-             "Идентификатор вызова:",
-             )
+            ()
         )
 
     for row in range(0, row_count):

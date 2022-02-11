@@ -8,13 +8,21 @@
     <h1>Все потерянные звонки</h1>
     <div class="alert alert-warning mt-2">
         <table border="0", align="center", cellpadding=5>
-            <col width="120" valign="top">
-            <col width="200" valign="top">
-            <col width="200" valign="top">
-            <col width="150" valign="top">
-            <col width="150" valign="top">
-            <col width="150" valign="top">
-            <col width="150" valign="top">
+            <tr>
+                <th>Оператор ID</th>
+                <th>Начало вызова</th>
+                <th>Конец вызова</th>
+                <th>Продолжительность вызова</th>
+                <th>Статус вызова</th>
+                <th>Идентификатор вызова</th>
+            </tr>
+                <col width="120" valign="top">
+                <col width="200" valign="top">
+                <col width="200" valign="top">
+                <col width="150" valign="top">
+                <col width="150" valign="top">
+                <col width="150" valign="top">
+                <col width="150" valign="top">
             {% for row in reader %}
                 <tr>
                     {% for x in row %} <td align="center">{{ x }}</td>
