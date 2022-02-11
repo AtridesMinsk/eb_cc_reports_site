@@ -6,4 +6,24 @@
 
 {% block content %}
     <h1>Главная страница</h1>
+    <div class="alert alert-warning mt-2">
+        <table border="0", align="center", cellpadding=5>
+            <tr>
+                <th>Оператор ID</th>
+                <th>Исходящие вызовы</th>
+                <th>Входящие вызовы</th>
+
+            </tr>
+                <col width="200" valign="top">
+                <col width="200" valign="top">
+                <col width="200" valign="top">
+
+            {% for row in reader %}
+                <tr>
+                    {% for x in row %} <td align="center">{{ x }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
 {% endblock %}
