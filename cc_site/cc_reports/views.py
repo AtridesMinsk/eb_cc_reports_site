@@ -280,6 +280,7 @@ def cor_data_calls_by_operator():
 
 
 def all_calls_by_operator():
+    cor_data_calls_by_operator()
     csv_data = []
     with open('cc_all_call_by_operator.csv', 'rU') as csv_file:
         reader = csv.reader(csv_file, dialect='excel')
