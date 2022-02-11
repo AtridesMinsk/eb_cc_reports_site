@@ -20,11 +20,10 @@ def average_call_rep(request):
         reader = csv.reader(csv_file, dialect='excel')
         for row in reader:
             csv_data.append(row)
-    objects = csv_data
-    p = Paginator(objects, 20)
-    page1 = p.page(1)
-    page2 = p.page(2)
-    return render(request, 'cc_reports/calls_rep.html', {'title': 'Звонки по дням', 'reader': page1.object_list})
+    paginator = Paginator(csv_data, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'cc_reports/calls_rep.html', {'title': 'Звонки по дням', 'reader': page_obj.object_list, 'page_obj': page_obj})
 
 
 def get_data_drop_call(call_id):
@@ -68,9 +67,6 @@ def cor_data_drop_call(drop_calls_rep):
     with open("cc_drop_call.csv", "w", newline='') as file:
         writer = csv.writer(file)
 
-        writer.writerow(
-            ()
-        )
     for row in range(0, row_count):
         user_id = results[row][0]
         ringing_start = results[row][1]
@@ -151,10 +147,6 @@ def cor_data_all_drop_call(date_from_db):
     with open("cc_all_drop_call.csv", "w", newline='') as file:
         writer = csv.writer(file)
 
-        writer.writerow(
-            ()
-        )
-
     for row in range(0, row_count):
         user_id = results[row][0]
         ringing_start = results[row][1]
@@ -182,9 +174,12 @@ def all_drop_call(request):
     dropped_calls = get_data_all_drop_call()
     print("Найдено записей в базе:", len(dropped_calls))
     cor_data_all_drop_call(dropped_calls)
-    svc_data = []
+    csv_data = []
     with open('cc_all_drop_call.csv', 'rU') as csv_file:
         reader = csv.reader(csv_file, dialect='excel')
         for row in reader:
-            svc_data.append(row)
-    return render(request, 'cc_reports/all_calls_drop.html', {'title': 'Все потерянные звонки','reader': svc_data})
+            csv_data.append(row)
+    paginator = Paginator(csv_data, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'cc_reports/all_calls_drop.html', {'title': 'Все потерянные звонки', 'reader': page_obj.object_list, 'page_obj': page_obj})

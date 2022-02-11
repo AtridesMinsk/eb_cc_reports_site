@@ -11,10 +11,6 @@ def create_csv_file():
     with open("cc_data.csv", "w", newline='') as file:
         writer = csv.writer(file)
 
-        writer.writerow(
-            ()
-        )
-
 
 def get_data_cancelled_call(start_date, end_date):
     sql_request =(f'SELECT count (*) AS Call_count '
