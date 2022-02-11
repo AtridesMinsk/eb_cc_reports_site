@@ -56,49 +56,10 @@ def get_data_drop_call(call_id):
     return drop_calls_rep
 
 
-def cor_data_drop_call(drop_calls_rep):
-    results = drop_calls_rep
-    row_count = len(results)
-
-    with open("cc_drop_call.csv", "w", newline='') as file:
-        writer = csv.writer(file)
-
-    for row in range(0, row_count):
-        user_id = results[row][0]
-        ringing_start = results[row][1]
-        ringing_stop = results[row][2]
-        ringing_duration = results[row][3]
-        call_result = results[row][4]
-        call_id = results[row][5]
-        subscriber_number = results[row][6]
-
-        with open("cc_drop_call.csv", "a", newline='') as file:
-            writer = csv.writer(file)
-
-            writer.writerow(
-                (
-                    user_id,
-                    ringing_start.strftime('%m.%d.%Y %H:%M'),
-                    ringing_stop.strftime('%m.%d.%Y %H:%M'),
-                    ringing_duration,
-                    call_result,
-                    call_id,
-                    subscriber_number
-                )
-            )
-
-
 def drop_call(request):
     call_id = request.GET.get('object')
     drop_call_data = get_data_drop_call(call_id)
-    print("Найдено записей в базе:", len(drop_call_data))
-    cor_data_drop_call(drop_call_data)
-    svc_data = []
-    with open('cc_drop_call.csv', 'rU') as csv_file:
-        reader = csv.reader(csv_file, dialect='excel')
-        for row in reader:
-            svc_data.append(row)
-    return render(request, 'cc_reports/calls_drop.html', {'title': 'Детализация потеряного звонка', 'reader': svc_data})
+    return render(request, 'cc_reports/calls_drop.html', {'title': 'Детализация потеряного звонка', 'reader': drop_call_data})
 
 
 def get_data_all_drop_call():
@@ -136,54 +97,25 @@ def get_data_all_drop_call():
     return drop_calls_rep
 
 
-def cor_data_all_drop_call(date_from_db):
-    results = date_from_db
-    row_count = len(results)
-
-    with open("cc_all_drop_call.csv", "w", newline='') as file:
-        writer = csv.writer(file)
-
-    for row in range(0, row_count):
-        user_id = results[row][0]
-        ringing_start = results[row][1]
-        ringing_stop = results[row][2]
-        ringing_duration = results[row][3]
-        call_result = results[row][4]
-        call_id = results[row][5]
-
-        with open("cc_all_drop_call.csv", "a", newline='') as file:
-            writer = csv.writer(file)
-
-            writer.writerow(
-                (
-                    user_id,
-                    ringing_start.strftime('%m.%d.%Y %H:%M'),
-                    ringing_stop.strftime('%m.%d.%Y %H:%M'),
-                    ringing_duration,
-                    call_result,
-                    call_id,
-                )
-            )
-
-
 def all_drop_call(request):
     dropped_calls = get_data_all_drop_call()
-    print("Найдено записей в базе:", len(dropped_calls))
-    cor_data_all_drop_call(dropped_calls)
-    csv_data = []
-    with open('cc_all_drop_call.csv', 'rU') as csv_file:
-        reader = csv.reader(csv_file, dialect='excel')
-        for row in reader:
-            csv_data.append(row)
-    paginator = Paginator(csv_data, 8)
+    paginator = Paginator(dropped_calls, 8)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request, 'cc_reports/all_calls_drop.html', {'title': 'Все потерянные звонки', 'reader': page_obj.object_list, 'page_obj': page_obj})
 
 
-def get_data_out_calls_by_operator():
+def get_data_calls_by_operator():
     sql_request = (
-        f'SELECT si.dn AS Operator_ID, count (*) AS Calls_by_Operator '
+        f'WITH Call_in AS ( '
+        f'SELECT to_dn AS Operator_ID, count (*) AS Calls_by_Operator_in '
+        f'FROM callcent_queuecalls '
+        f'WHERE ts_servicing != \'00:00:00\' AND time_start AT TIME ZONE \'UTC+3\' > \'2021-08-01\' AND to_dn != '
+        f'\'1000\' AND to_dn != \'1001\' AND to_dn != \'9999\' '
+        f'GROUP BY to_dn '
+        f'ORDER BY to_dn ASC '
+        f'), '
+        f'Call_out AS (SELECT count (*) AS Calls_by_Operator_out, si.dn AS Operator_ID '
         f'FROM ((((((cl_segments s '
         f'JOIN cl_participants sp ON ((sp.id = s.src_part_id))) '
         f'JOIN cl_participants dp ON ((dp.id = s.dst_part_id))) '
@@ -194,8 +126,11 @@ def get_data_out_calls_by_operator():
         f'WHERE s.start_time AT TIME ZONE \'UTC-3\' > \'2021-08-01\' '
         f'AND s.action_id = 1 AND si.dn_type = 0 AND seq_order = 1 AND si.dn != \'1000\' AND si.dn != \'1001\' '
         f'GROUP BY si.dn '
-        f'ORDER BY si.dn ASC '
-    )
+        f'ORDER BY si.dn ASC) '
+        f'SELECT Call_in.Operator_ID, Call_in.Calls_by_Operator_in, Call_out.Calls_by_Operator_out '
+        f'FROM Call_in '
+        f'LEFT JOIN Call_out ON Call_in.Operator_ID = Call_out.Operator_ID '
+        )
 
     try:
         connection = psycopg2.connect(database=database,
@@ -208,7 +143,7 @@ def get_data_out_calls_by_operator():
         cursor_call_count = connection.cursor()
         cursor_call_count.execute(str(sql_request))
 
-        drop_calls_rep = cursor_call_count.fetchall()
+        in_calls = cursor_call_count.fetchall()
 
     except (Exception, Error) as error:
         print("Ошибка при работе с PostgreSQL", error)
@@ -218,77 +153,11 @@ def get_data_out_calls_by_operator():
             cursor_call_count.close()
             connection.close()
 
-    return drop_calls_rep
-
-
-def get_data_in_calls_by_operator():
-    sql_request = (
-        f'SELECT to_dn AS Operator_ID, count (*) AS Calls_by_Operator '
-        f'FROM callcent_queuecalls '
-        f'WHERE ts_servicing != \'00:00:00\' AND time_start AT TIME ZONE \'UTC+3\' > \'2021-08-01\' '
-        f'AND to_dn != \'1000\' AND to_dn != \'1001\' AND to_dn != \'9999\' '
-        f'GROUP BY to_dn '
-        f'ORDER BY to_dn ASC '
-    )
-
-    try:
-        connection = psycopg2.connect(database=database,
-                                      user=user,
-                                      password=password,
-                                      host=host,
-                                      port=port
-                                      )
-
-        cursor_call_count = connection.cursor()
-        cursor_call_count.execute(str(sql_request))
-
-        drop_calls_rep = cursor_call_count.fetchall()
-
-    except (Exception, Error) as error:
-        print("Ошибка при работе с PostgreSQL", error)
-
-    finally:
-        if connection:
-            cursor_call_count.close()
-            connection.close()
-
-    return drop_calls_rep
-
-
-def cor_data_calls_by_operator():
-    results = get_data_out_calls_by_operator()
-    row_count = len(results)
-
-    with open("cc_all_call_by_operator.csv", "w", newline='') as file:
-        writer = csv.writer(file)
-
-    for row in range(0, row_count):
-        user_id = get_data_out_calls_by_operator()[row][0]
-        outgoing_calls = get_data_out_calls_by_operator()[row][1]
-        incoming_calls = get_data_in_calls_by_operator()[row][1]
-
-        with open("cc_all_call_by_operator.csv", "a", newline='') as file:
-            writer = csv.writer(file)
-
-            writer.writerow(
-                (
-                    user_id,
-                    outgoing_calls,
-                    incoming_calls,
-                )
-            )
-
-
-def all_calls_by_operator():
-    cor_data_calls_by_operator()
-    csv_data = []
-    with open('cc_all_call_by_operator.csv', 'rU') as csv_file:
-        reader = csv.reader(csv_file, dialect='excel')
-        for row in reader:
-            csv_data.append(row)
-    return csv_data
+    return in_calls
 
 
 def index(request):
-    data_calls_by_operator = all_calls_by_operator
-    return render(request, 'cc_reports/index.html', {'title': 'Звонки по операторам', 'reader': data_calls_by_operator})
+    data_calls_by_operator = get_data_calls_by_operator()
+    call_by_operator = render(request, 'cc_reports/index.html', {'title': 'Звонки по операторам',
+                                                                 'reader': data_calls_by_operator})
+    return call_by_operator
