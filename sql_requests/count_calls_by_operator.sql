@@ -1,4 +1,11 @@
 WITH 
+Canceled_calls AS (
+	SELECT count (*) AS Call_count, ag_num
+	FROM callcent_ag_dropped_calls 
+	WHERE time_start AT TIME ZONE 'UTC+3' > '2021-08-01' AND reason_noanswerdesc = 'Cancelled' AND ag_num != '1000' AND ag_num != '1001' AND ag_num != '9999'
+	GROUP BY ag_num
+	ORDER BY ag_num
+	),
 Call_in AS (
     SELECT to_dn AS Operator_ID_in, count (*) AS Calls_by_Operator_in
 	FROM callcent_queuecalls 
@@ -18,6 +25,7 @@ Call_out AS (SELECT count (*) AS Calls_by_Operator_out, si.dn AS Operator_ID_out
 	AND s.action_id = 1 AND si.dn_type = 0 AND seq_order = 1 AND si.dn != '1000' AND si.dn != '1001'
 	GROUP BY si.dn
 	ORDER BY si.dn ASC)
-SELECT Call_in.Operator_ID_in, Call_in.Calls_by_Operator_in, Call_out.Calls_by_Operator_out
+SELECT Call_in.Operator_ID_in, Call_in.Calls_by_Operator_in, Call_out.Calls_by_Operator_out, Canceled_calls.Call_count
 FROM Call_in
 INNER JOIN Call_out ON Call_in.Operator_ID_in = Call_out.Operator_ID_out
+INNER JOIN Canceled_calls ON Call_in.Operator_ID_in = Canceled_calls.ag_num
