@@ -3,3 +3,4 @@ django
 connect_db
 pandas
 matplotlib
+schedule

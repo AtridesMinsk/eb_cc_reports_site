@@ -1,6 +1,7 @@
 import csv
 import time
 import psycopg2
+import schedule
 from connect_db import prod_password as password, prod_host as host, user, database, port
 
 from psycopg2 import Error
@@ -160,10 +161,18 @@ def calculate_days_count():
     return days_swap
 
 
-def main():
+def get_data():
     create_csv_file()
     days_swap = calculate_days_count()
     cor_data_average_call(days_swap)
+
+
+def main():
+    schedule.every(5).minutes.do(get_data)
+    schedule.every().day.at('21:51').do(get_data)
+
+    while True:
+        schedule.run_pending()
 
 
 if __name__ == '__main__':
