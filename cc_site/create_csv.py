@@ -1,4 +1,5 @@
 import csv
+import datetime
 import time
 import psycopg2
 import schedule
@@ -165,10 +166,11 @@ def get_data():
     create_csv_file()
     days_swap = calculate_days_count()
     cor_data_average_call(days_swap)
+    print(datetime.datetime.now())
 
 
 def main():
-    schedule.every(5).minutes.do(get_data)
+    # schedule.every(5).minutes.do(get_data)
     schedule.every().day.at('21:51').do(get_data)
 
     while True:
