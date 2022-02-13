@@ -22,7 +22,7 @@ Call_out AS (SELECT count (*) AS Calls_by_Operator_out, si.dn AS Operator_ID_out
 	LEFT JOIN cl_participants ap ON ((ap.id = s.action_party_id)))
 	LEFT JOIN cl_party_info ai ON ((ai.id = ap.info_id)))
 	WHERE s.start_time AT TIME ZONE 'UTC-3' > '2021-08-01' 
-	AND s.action_id = 1 AND si.dn_type = 0 AND seq_order = 1 AND si.dn != '1000' AND si.dn != '1001'
+	AND s.action_id = 1 AND si.dn_type = 0 AND seq_order = 1 AND si.dn != '1000' AND si.dn != '1001' AND di.dn_type = 13
 	GROUP BY si.dn
 	ORDER BY si.dn ASC)
 SELECT Call_in.Operator_ID_in, Call_in.Calls_by_Operator_in, Call_out.Calls_by_Operator_out, Canceled_calls.Call_count

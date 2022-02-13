@@ -171,7 +171,7 @@ def get_data():
 
 def main():
     # schedule.every(5).minutes.do(get_data)
-    schedule.every().day.at('21:51').do(get_data)
+    schedule.every().day.at('00:10').do(get_data)
 
     while True:
         schedule.run_pending()

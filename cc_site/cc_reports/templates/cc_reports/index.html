@@ -5,8 +5,10 @@
 {% endblock %}
 
 {% block content %}
-    <h1>Главная страница</h1>
     <div class="alert alert-warning mt-2">
+        <center>
+            <b>Общее количество вызовов по операторам</b><br>
+        </center>
         <table border="0", align="center", cellpadding=5>
             <tr>
                 <th>Оператор ID</th>
@@ -17,8 +19,32 @@
                 <col width="200" valign="top">
                 <col width="200" valign="top">
                 <col width="200" valign="top">
+                <col width="200" valign="top">
 
-            {% for row in reader %}
+            {% for row in data_calls_by_operator %}
+                <tr>
+                    {% for x in row %} <td align="center">{{ x }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+        <br>
+        <center>
+            <b>Среднее количество вызовов по дням недели</b><br>
+        </center>
+        <table border="0", align="center", cellpadding=5>
+            <tr>
+                <th>День недели</th>
+                <th>Входящие вызовы</th>
+                <th>Исходящие вызовы</th>
+                <th>Пропущеные вызовы</th>
+            </tr>
+                <col width="200" valign="top">
+                <col width="200" valign="top">
+                <col width="200" valign="top">
+                <col width="200" valign="top">
+
+            {% for row in data_call_by_week_day %}
                 <tr>
                     {% for x in row %} <td align="center">{{ x }}</td>
                     {% endfor %}
