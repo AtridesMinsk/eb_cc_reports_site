@@ -4,22 +4,24 @@ import time
 import psycopg2
 import schedule
 from connect_db import prod_password as password, prod_host as host, user, database, port
-
 from psycopg2 import Error
 from datetime import timedelta, date
 
 
 def create_csv_file():
     with open("cc_data.csv", "w", newline='') as file:
-        writer = csv.writer(file)
+        csv.writer(file)
 
 
 def get_data_cancelled_call(start_date, end_date):
-    sql_request =(f'SELECT count (*) AS Call_count '
-                  f'FROM callcent_ag_dropped_calls '
-                  f'WHERE time_start AT TIME ZONE \'UTC+3\' > \'{start_date}\' '
-                  f'AND time_end AT TIME ZONE \'UTC+3\' < \'{end_date}\' '
-                  f'AND reason_noanswerdesc = \'Cancelled\' ')
+    sql_request = (f"""
+            SELECT 
+                count (*) AS Call_count
+            FROM callcent_ag_dropped_calls
+            WHERE time_start AT TIME ZONE 'UTC+3' > '{start_date}'
+                AND time_end AT TIME ZONE 'UTC+3' < '{end_date}'
+                AND reason_noanswerdesc = 'Cancelled'    
+            """)
 
     try:
         connection = psycopg2.connect(database=database,
@@ -46,17 +48,20 @@ def get_data_cancelled_call(start_date, end_date):
 
 
 def get_data_outgoing_call(start_date, end_date):
-    sql_request = (f'SELECT count (*) AS Call_count '
-                   f'FROM ((((((cl_segments s '
-                   f'JOIN cl_participants sp ON ((sp.id = s.src_part_id))) '
-                   f'JOIN cl_participants dp ON ((dp.id = s.dst_part_id))) '
-                   f'JOIN cl_party_info si ON ((si.id = sp.info_id))) '
-                   f'JOIN cl_party_info di ON ((di.id = dp.info_id))) '
-                   f'LEFT JOIN cl_participants ap ON ((ap.id = s.action_party_id))) '
-                   f'LEFT JOIN cl_party_info ai ON ((ai.id = ap.info_id))) '
-                   f'WHERE s.start_time AT TIME ZONE \'UTC-3\' > \'{start_date}\' '
-                   f'AND s.end_time AT TIME ZONE \'UTC-3\' < \'{end_date}\' ' 
-                   f'AND s.action_id = 1 AND si.dn_type = 0 AND seq_order = 1')
+    sql_request = (f"""
+            SELECT 
+                count (*) AS Call_count
+            FROM ((((((cl_segments s
+                JOIN cl_participants sp ON ((sp.id = s.src_part_id)))
+                JOIN cl_participants dp ON ((dp.id = s.dst_part_id)))
+                JOIN cl_party_info si ON ((si.id = sp.info_id)))
+                JOIN cl_party_info di ON ((di.id = dp.info_id)))
+                LEFT JOIN cl_participants ap ON ((ap.id = s.action_party_id)))
+                LEFT JOIN cl_party_info ai ON ((ai.id = ap.info_id)))
+            WHERE s.start_time AT TIME ZONE 'UTC-3' > '{start_date}'
+                AND s.end_time AT TIME ZONE 'UTC-3' < '{end_date}' 
+                AND s.action_id = 1 AND si.dn_type = 0 AND seq_order = 1
+            """)
 
     try:
         connection = psycopg2.connect(database=database,
@@ -83,11 +88,17 @@ def get_data_outgoing_call(start_date, end_date):
 
 
 def get_data_average_call(start_date, end_date):
-    sql_request = (f'SELECT count (*) AS Call_count, DATE_TRUNC(\'second\', AVG (ts_servicing + interval \'500 '
-                   f'millisecond\')), DATE_TRUNC(\'second\', AVG (ts_waiting + interval \'500 millisecond\')), '
-                   f'DATE_TRUNC(\'second\', AVG (ts_polling + interval \'500 millisecond\')) FROM '
-                   f'public.callcent_queuecalls WHERE time_start AT TIME ZONE \'UTC+3\' > \'{start_date}\' AND '
-                   f'time_start AT TIME ZONE \'UTC+3\' < \'{end_date}\' AND ts_servicing != \'00:00:00\'')
+    sql_request = (f"""
+            SELECT 
+                count (*) AS Call_count, 
+                DATE_TRUNC('second', AVG (ts_servicing + interval '500 millisecond')), 
+                DATE_TRUNC('second', AVG (ts_waiting + interval '500 millisecond')),
+                DATE_TRUNC('second', AVG (ts_polling + interval '500 millisecond')) 
+            FROM public.callcent_queuecalls 
+            WHERE time_start AT TIME ZONE 'UTC+3' > '{start_date}' 
+                AND time_start AT TIME ZONE 'UTC+3' < '{end_date}' 
+                AND ts_servicing != '00:00:00'
+            """)
 
     try:
         connection = psycopg2.connect(database=database,
@@ -170,7 +181,7 @@ def get_data():
 
 
 def main():
-    # schedule.every(5).minutes.do(get_data)
+    # schedule.every(1).minutes.do(get_data)
     schedule.every().day.at('00:10').do(get_data)
 
     while True:
