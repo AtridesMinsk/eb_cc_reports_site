@@ -181,7 +181,7 @@ def get_data():
 
 
 def main():
-    schedule.every(1).minutes.do(get_data)
+    # schedule.every(1).minutes.do(get_data)
     schedule.every().day.at('00:10').do(get_data)
 
     while True:
