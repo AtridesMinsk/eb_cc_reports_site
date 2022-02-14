@@ -123,7 +123,7 @@ def get_data_calls_by_operator():
             Canceled_calls AS (
                 SELECT count (*) AS Call_count, ag_num
                 FROM callcent_ag_dropped_calls
-                WHERE time_start AT TIME ZONE 'UTC+3' > '2021-08-01' 
+                WHERE time_start AT TIME ZONE 'UTC' > '2021-08-01' 
                 AND reason_noanswerdesc = 'Cancelled' OR reason_noanswerdesc = 'User requested'
                 AND ag_num != '1000' AND ag_num != '1001' AND ag_num != '9999'
                 GROUP BY ag_num
@@ -195,7 +195,7 @@ def get_data_call_by_week_day():
                 Canceled_calls AS (
                     SELECT count (*) / {week_count} AS Call_count, to_char(time_start, 'Day') AS Day_of_the_week
                     FROM callcent_ag_dropped_calls 
-                    WHERE time_start AT TIME ZONE 'UTC+3' > '2021-08-01' AND reason_noanswerdesc = 'Cancelled'
+                    WHERE time_start AT TIME ZONE 'UTC' > '2021-08-01' AND reason_noanswerdesc = 'Cancelled'
                     OR reason_noanswerdesc = 'User requested' 
                     AND ag_num != '1000' AND ag_num != '1001' AND ag_num != '9999'
                     GROUP BY to_char(time_start, 'Day')

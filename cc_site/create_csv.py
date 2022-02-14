@@ -18,8 +18,8 @@ def get_data_cancelled_call(start_date, end_date):
             SELECT 
                 count (*) AS Call_count
             FROM callcent_ag_dropped_calls
-            WHERE time_start AT TIME ZONE 'UTC+3' > '{start_date}'
-                AND time_end AT TIME ZONE 'UTC+3' < '{end_date}'
+            WHERE time_start AT TIME ZONE 'UTC' > '{start_date}'
+                AND time_end AT TIME ZONE 'UTC' < '{end_date}'
                 AND reason_noanswerdesc = 'Cancelled' 
             """)
 
