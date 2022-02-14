@@ -26,8 +26,8 @@ def average_call_rep(request):
 def get_data_drop_call(call_id):
     sql_request = (f"""
             SELECT callcent_ag_dropped_calls.ag_num,
-                callcent_ag_dropped_calls.time_start AT TIME ZONE 'UTC+3',
-                callcent_ag_dropped_calls.time_end AT TIME ZONE 'UTC+3',
+                callcent_ag_dropped_calls.time_start AT TIME ZONE 'UTC',
+                callcent_ag_dropped_calls.time_end AT TIME ZONE 'UTC',
                 DATE_TRUNC('second', callcent_ag_dropped_calls.ts_polling + interval '500 millisecond'),
                 callcent_ag_dropped_calls.reason_noanswerdesc, 
                 callcent_ag_dropped_calls.q_call_history_id,
@@ -124,7 +124,7 @@ def get_data_calls_by_operator():
                 SELECT count (*) AS Call_count, ag_num
                 FROM callcent_ag_dropped_calls
                 WHERE time_start AT TIME ZONE 'UTC' > '2021-08-01' 
-                AND reason_noanswerdesc = 'Cancelled' OR reason_noanswerdesc = 'User requested'
+                AND reason_noanswerdesc != 'Answered' AND reason_noanswerdesc = 'Poll expired'
                 AND ag_num != '1000' AND ag_num != '1001' AND ag_num != '9999'
                 GROUP BY ag_num
                 ORDER BY ag_num
@@ -195,8 +195,8 @@ def get_data_call_by_week_day():
                 Canceled_calls AS (
                     SELECT count (*) / {week_count} AS Call_count, to_char(time_start, 'Day') AS Day_of_the_week
                     FROM callcent_ag_dropped_calls 
-                    WHERE time_start AT TIME ZONE 'UTC' > '2021-08-01' AND reason_noanswerdesc = 'Cancelled'
-                    OR reason_noanswerdesc = 'User requested' 
+                    WHERE time_start AT TIME ZONE 'UTC' > '2021-08-01' 
+                    AND reason_noanswerdesc != 'Answered' AND reason_noanswerdesc = 'Poll expired'
                     AND ag_num != '1000' AND ag_num != '1001' AND ag_num != '9999'
                     GROUP BY to_char(time_start, 'Day')
                     ),
