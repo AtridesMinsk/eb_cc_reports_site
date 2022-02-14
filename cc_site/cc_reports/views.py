@@ -110,7 +110,7 @@ def get_data_all_drop_call():
 
 def all_drop_call(request):
     dropped_calls = get_data_all_drop_call()
-    paginator = Paginator(dropped_calls, 7)
+    paginator = Paginator(dropped_calls, 8)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request, 'cc_reports/all_calls_drop.html',
