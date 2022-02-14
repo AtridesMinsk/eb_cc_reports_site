@@ -20,7 +20,7 @@ def get_data_cancelled_call(start_date, end_date):
             FROM callcent_ag_dropped_calls
             WHERE time_start AT TIME ZONE 'UTC+3' > '{start_date}'
                 AND time_end AT TIME ZONE 'UTC+3' < '{end_date}'
-                AND reason_noanswerdesc = 'Cancelled'    
+                AND reason_noanswerdesc = 'Cancelled' 
             """)
 
     try:
@@ -181,7 +181,7 @@ def get_data():
 
 
 def main():
-    # schedule.every(1).minutes.do(get_data)
+    schedule.every(1).minutes.do(get_data)
     schedule.every().day.at('00:10').do(get_data)
 
     while True:

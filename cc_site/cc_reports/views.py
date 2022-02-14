@@ -26,13 +26,16 @@ def average_call_rep(request):
 def get_data_drop_call(call_id):
     sql_request = (f"""
             SELECT callcent_ag_dropped_calls.ag_num,
-            callcent_ag_dropped_calls.time_start AT TIME ZONE 'UTC+3',
-            callcent_ag_dropped_calls.time_end AT TIME ZONE 'UTC+3',
-            DATE_TRUNC('second', callcent_ag_dropped_calls.ts_polling + interval '500 millisecond'),
-            callcent_ag_dropped_calls.reason_noanswerdesc, callcent_ag_dropped_calls.q_call_history_id,
-            callcent_queuecalls.from_userpart FROM callcent_ag_dropped_calls LEFT JOIN callcent_queuecalls
-            ON callcent_queuecalls.call_history_id = q_call_history_id WHERE q_call_history_id =
-            '{call_id}' ORDER BY idcallcent_ag_dropped_calls ASC
+                callcent_ag_dropped_calls.time_start AT TIME ZONE 'UTC+3',
+                callcent_ag_dropped_calls.time_end AT TIME ZONE 'UTC+3',
+                DATE_TRUNC('second', callcent_ag_dropped_calls.ts_polling + interval '500 millisecond'),
+                callcent_ag_dropped_calls.reason_noanswerdesc, 
+                callcent_ag_dropped_calls.q_call_history_id,
+                callcent_queuecalls.from_userpart 
+            FROM callcent_ag_dropped_calls 
+            LEFT JOIN callcent_queuecalls ON callcent_queuecalls.call_history_id = q_call_history_id 
+            WHERE q_call_history_id = '{call_id}' 
+            ORDER BY idcallcent_ag_dropped_calls ASC
     """)
 
     try:
@@ -68,13 +71,17 @@ def drop_call(request):
 
 def get_data_all_drop_call():
     sql_request = (f"""
-            SELECT callcent_ag_dropped_calls.ag_num, callcent_ag_dropped_calls.time_start AT TIME ZONE 'UTC+3',
-            callcent_ag_dropped_calls.time_end AT TIME ZONE 'UTC+3',
-            DATE_TRUNC('second', callcent_ag_dropped_calls.ts_polling + interval
-            '500 millisecond'), callcent_ag_dropped_calls.reason_noanswerdesc,
-            callcent_ag_dropped_calls.q_call_history_id FROM callcent_ag_dropped_calls WHERE reason_noanswerdesc =
-            'Poll expired' AND time_start AT TIME ZONE 'UTC+3' > '2021-08-01' ORDER BY
-            idcallcent_ag_dropped_calls DESC
+            SELECT 
+                callcent_ag_dropped_calls.ag_num,
+                callcent_ag_dropped_calls.time_start AT TIME ZONE 'UTC',
+                callcent_ag_dropped_calls.time_end AT TIME ZONE 'UTC',
+                DATE_TRUNC('second', callcent_ag_dropped_calls.ts_polling + interval '500 millisecond'), 
+                callcent_ag_dropped_calls.reason_noanswerdesc,
+                callcent_ag_dropped_calls.q_call_history_id 
+            FROM callcent_ag_dropped_calls 
+            WHERE reason_noanswerdesc = 'Poll expired' OR reason_noanswerdesc = 'User requested'
+            AND time_start AT TIME ZONE 'UTC' > '2021-08-01' 
+            ORDER BY idcallcent_ag_dropped_calls DESC
     """)
 
     try:
@@ -116,8 +123,9 @@ def get_data_calls_by_operator():
             Canceled_calls AS (
                 SELECT count (*) AS Call_count, ag_num
                 FROM callcent_ag_dropped_calls
-                WHERE time_start AT TIME ZONE 'UTC+3' > '2021-08-01' AND reason_noanswerdesc = 'Cancelled' AND ag_num
-                != '1000' AND ag_num != '1001' AND ag_num != '9999'
+                WHERE time_start AT TIME ZONE 'UTC+3' > '2021-08-01' 
+                AND reason_noanswerdesc = 'Cancelled' OR reason_noanswerdesc = 'User requested'
+                AND ag_num != '1000' AND ag_num != '1001' AND ag_num != '9999'
                 GROUP BY ag_num
                 ORDER BY ag_num
             ),
@@ -187,7 +195,8 @@ def get_data_call_by_week_day():
                 Canceled_calls AS (
                     SELECT count (*) / {week_count} AS Call_count, to_char(time_start, 'Day') AS Day_of_the_week
                     FROM callcent_ag_dropped_calls 
-                    WHERE time_start AT TIME ZONE 'UTC+3' > '2021-08-01' AND reason_noanswerdesc = 'Cancelled' 
+                    WHERE time_start AT TIME ZONE 'UTC+3' > '2021-08-01' AND reason_noanswerdesc = 'Cancelled'
+                    OR reason_noanswerdesc = 'User requested' 
                     AND ag_num != '1000' AND ag_num != '1001' AND ag_num != '9999'
                     GROUP BY to_char(time_start, 'Day')
                     ),
