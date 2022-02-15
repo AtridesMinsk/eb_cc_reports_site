@@ -60,7 +60,7 @@ def get_data_outgoing_call(start_date, end_date):
                 LEFT JOIN cl_party_info ai ON ((ai.id = ap.info_id)))
             WHERE s.start_time AT TIME ZONE 'UTC-3' > '{start_date}'
                 AND s.end_time AT TIME ZONE 'UTC-3' < '{end_date}' 
-                AND s.action_id = 1 AND si.dn_type = 0 AND seq_order = 1
+                AND s.action_id = 1 AND si.dn_type = 0 AND seq_order = 1 AND di.dn_type = 13
             """)
 
     try:
