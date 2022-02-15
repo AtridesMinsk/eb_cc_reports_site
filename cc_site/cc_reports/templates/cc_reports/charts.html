@@ -1,0 +1,83 @@
+{% extends 'cc_reports/base.html' %}
+
+{% block title%}
+{{title}}
+{% endblock %}
+
+{% block content %}
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/series-label.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+
+<figure class="highcharts-figure">
+    <div id="container"></div>
+    <p class="highcharts-description">
+        <code>
+            <script type="text/javascript">
+                operator_id = [{{ data_operator_id }}]
+                calls_in = [{{ data_calls_in }}]
+                calls_out = [{{ data_calls_out }}]
+                calls_canceled = [{{ data_calls_cancel }}]
+                console.log(operator_id)
+                console.log(calls_in)
+                console.log(calls_in)
+                console.log(calls_canceled)
+                Highcharts.chart('container', {
+                    chart: {
+                        type: 'column'
+                    },
+                    title: {
+                        text: 'Общее количество вызовов по операторам'
+                    },
+                    xAxis: {
+                            title: {
+                                text: 'Номер оператора'
+                            },
+                        categories: operator_id,
+                        crosshair: true
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: {
+                            text: 'Количество звонков'
+                        }
+                    },
+                    tooltip: {
+                        headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                        pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                            '<td style="padding:0"><b>{point.y:.1f} шт</b></td></tr>',
+                        footerFormat: '</table>',
+                        shared: true,
+                        useHTML: true
+                    },
+                    plotOptions: {
+                        column: {
+                            pointPadding: 0.2,
+                            borderWidth: 0
+                        }
+                    },
+                    series: [{
+                        name: 'Входящие звонки',
+                        data: calls_in
+
+                    }, {
+                        name: 'Исходящие звонки',
+                        data: calls_out
+
+                    }, {
+                        name: 'Пропущеные звонки',
+                        data: calls_canceled
+
+                    }]
+                });
+            </script>
+        </code>
+    </p>
+</figure>
+
+
+
+{% endblock %}

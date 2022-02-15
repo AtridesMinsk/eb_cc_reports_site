@@ -6,10 +6,6 @@ from django.core.paginator import Paginator
 from connect_db import prod_password as password, prod_host as host, user, database, port
 
 
-def about(request):
-    return render(request, 'cc_reports/about.html', {'title': 'О нас'})
-
-
 def average_call_rep(request):
     csv_data = []
     with open('cc_data.csv', 'rU') as csv_file:
@@ -152,7 +148,7 @@ def get_data_calls_by_operator():
                 GROUP BY si.dn
                 ORDER BY si.dn ASC              
             )
-            SELECT Call_in.Operator_ID_in, Call_in.Calls_by_Operator_in, 
+            SELECT CAST(Call_in.Operator_ID_in AS int4), Call_in.Calls_by_Operator_in, 
             Call_out.Calls_by_Operator_out, Canceled_calls.Call_count
             FROM Call_in
             INNER JOIN Call_out ON Call_in.Operator_ID_in = Call_out.Operator_ID_out
@@ -258,4 +254,297 @@ def index(request):
     call_by_operator = render(request, 'cc_reports/index.html', {'title': 'Звонки по операторам',
                                                                  'data_calls_by_operator': data_calls_by_operator,
                                                                  'data_call_by_week_day': data_call_by_week_day})
+    return call_by_operator
+
+
+def get_operator_id():
+    sql_request = (f"""
+            WITH
+            Canceled_calls AS (
+                SELECT count (*) AS Call_count, ag_num
+                FROM callcent_ag_dropped_calls
+                WHERE time_start AT TIME ZONE 'UTC' > '2021-08-01' 
+                AND reason_noanswerdesc != 'Answered' AND reason_noanswerdesc = 'Poll expired'
+                AND ag_num != '1000' AND ag_num != '1001' AND ag_num != '9999'
+                GROUP BY ag_num
+                ORDER BY ag_num
+            ),
+            Call_in AS (
+                SELECT to_dn AS Operator_ID_in, count (*) AS Calls_by_Operator_in
+                FROM callcent_queuecalls
+                WHERE ts_servicing != '00:00:00' AND time_start AT TIME ZONE 'UTC+3' > '2021-08-01' AND to_dn !=
+                '1000' AND to_dn != '1001' AND to_dn != '9999'
+                GROUP BY to_dn
+                ORDER BY to_dn ASC
+            ),
+            Call_out AS (
+                SELECT count (*) AS Calls_by_Operator_out, si.dn AS Operator_ID_out
+                FROM ((((((cl_segments s
+                JOIN cl_participants sp ON ((sp.id = s.src_part_id)))
+                JOIN cl_participants dp ON ((dp.id = s.dst_part_id)))
+                JOIN cl_party_info si ON ((si.id = sp.info_id)))
+                JOIN cl_party_info di ON ((di.id = dp.info_id)))
+                LEFT JOIN cl_participants ap ON ((ap.id = s.action_party_id)))
+                LEFT JOIN cl_party_info ai ON ((ai.id = ap.info_id)))
+                WHERE s.start_time AT TIME ZONE 'UTC-3' > '2021-08-01'
+                AND s.action_id = 1 AND si.dn_type = 0 AND di.dn_type = 13 AND seq_order = 1
+                AND si.dn != '1000' AND si.dn != '1001'
+                GROUP BY si.dn
+                ORDER BY si.dn ASC              
+            )
+            SELECT CAST(Call_in.Operator_ID_in AS int4)
+            FROM Call_in
+            INNER JOIN Call_out ON Call_in.Operator_ID_in = Call_out.Operator_ID_out
+            INNER JOIN Canceled_calls ON Call_in.Operator_ID_in = Canceled_calls.ag_num
+            """)
+
+    try:
+        connection = psycopg2.connect(database=database,
+                                      user=user,
+                                      password=password,
+                                      host=host,
+                                      port=port
+                                      )
+
+        cursor_call_count = connection.cursor()
+        cursor_call_count.execute(str(sql_request))
+
+        operator_id = cursor_call_count.fetchall()
+
+    except (Exception, Error) as error:
+        print("Ошибка при работе с PostgreSQL", error)
+
+    finally:
+        if connection:
+            cursor_call_count.close()
+            connection.close()
+    list_to_str = ' '.join(map(str, operator_id))
+    list_to_str = list_to_str.replace("(", "")
+    list_to_str = list_to_str.replace(")", "")
+    list_to_str = list_to_str.rstrip(list_to_str[-1])
+
+    return list_to_str
+
+
+def get_operator_in_calls():
+    sql_request = (f"""
+            WITH
+            Canceled_calls AS (
+                SELECT count (*) AS Call_count, ag_num
+                FROM callcent_ag_dropped_calls
+                WHERE time_start AT TIME ZONE 'UTC' > '2021-08-01' 
+                AND reason_noanswerdesc != 'Answered' AND reason_noanswerdesc = 'Poll expired'
+                AND ag_num != '1000' AND ag_num != '1001' AND ag_num != '9999'
+                GROUP BY ag_num
+                ORDER BY ag_num
+            ),
+            Call_in AS (
+                SELECT to_dn AS Operator_ID_in, count (*) AS Calls_by_Operator_in
+                FROM callcent_queuecalls
+                WHERE ts_servicing != '00:00:00' AND time_start AT TIME ZONE 'UTC+3' > '2021-08-01' AND to_dn !=
+                '1000' AND to_dn != '1001' AND to_dn != '9999'
+                GROUP BY to_dn
+                ORDER BY to_dn ASC
+            ),
+            Call_out AS (
+                SELECT count (*) AS Calls_by_Operator_out, si.dn AS Operator_ID_out
+                FROM ((((((cl_segments s
+                JOIN cl_participants sp ON ((sp.id = s.src_part_id)))
+                JOIN cl_participants dp ON ((dp.id = s.dst_part_id)))
+                JOIN cl_party_info si ON ((si.id = sp.info_id)))
+                JOIN cl_party_info di ON ((di.id = dp.info_id)))
+                LEFT JOIN cl_participants ap ON ((ap.id = s.action_party_id)))
+                LEFT JOIN cl_party_info ai ON ((ai.id = ap.info_id)))
+                WHERE s.start_time AT TIME ZONE 'UTC-3' > '2021-08-01'
+                AND s.action_id = 1 AND si.dn_type = 0 AND di.dn_type = 13 AND seq_order = 1
+                AND si.dn != '1000' AND si.dn != '1001'
+                GROUP BY si.dn
+                ORDER BY si.dn ASC              
+            )
+            SELECT Call_in.Calls_by_Operator_in
+            FROM Call_in
+            INNER JOIN Call_out ON Call_in.Operator_ID_in = Call_out.Operator_ID_out
+            INNER JOIN Canceled_calls ON Call_in.Operator_ID_in = Canceled_calls.ag_num
+            """)
+
+    try:
+        connection = psycopg2.connect(database=database,
+                                      user=user,
+                                      password=password,
+                                      host=host,
+                                      port=port
+                                      )
+
+        cursor_call_count = connection.cursor()
+        cursor_call_count.execute(str(sql_request))
+
+        operator_id = cursor_call_count.fetchall()
+
+    except (Exception, Error) as error:
+        print("Ошибка при работе с PostgreSQL", error)
+
+    finally:
+        if connection:
+            cursor_call_count.close()
+            connection.close()
+    list_to_str = ' '.join(map(str, operator_id))
+    list_to_str = list_to_str.replace("(", "")
+    list_to_str = list_to_str.replace(")", "")
+    list_to_str = list_to_str.rstrip(list_to_str[-1])
+
+    return list_to_str
+
+
+def get_operator_out_calls():
+    sql_request = (f"""
+            WITH
+            Canceled_calls AS (
+                SELECT count (*) AS Call_count, ag_num
+                FROM callcent_ag_dropped_calls
+                WHERE time_start AT TIME ZONE 'UTC' > '2021-08-01' 
+                AND reason_noanswerdesc != 'Answered' AND reason_noanswerdesc = 'Poll expired'
+                AND ag_num != '1000' AND ag_num != '1001' AND ag_num != '9999'
+                GROUP BY ag_num
+                ORDER BY ag_num
+            ),
+            Call_in AS (
+                SELECT to_dn AS Operator_ID_in, count (*) AS Calls_by_Operator_in
+                FROM callcent_queuecalls
+                WHERE ts_servicing != '00:00:00' AND time_start AT TIME ZONE 'UTC+3' > '2021-08-01' AND to_dn !=
+                '1000' AND to_dn != '1001' AND to_dn != '9999'
+                GROUP BY to_dn
+                ORDER BY to_dn ASC
+            ),
+            Call_out AS (
+                SELECT count (*) AS Calls_by_Operator_out, si.dn AS Operator_ID_out
+                FROM ((((((cl_segments s
+                JOIN cl_participants sp ON ((sp.id = s.src_part_id)))
+                JOIN cl_participants dp ON ((dp.id = s.dst_part_id)))
+                JOIN cl_party_info si ON ((si.id = sp.info_id)))
+                JOIN cl_party_info di ON ((di.id = dp.info_id)))
+                LEFT JOIN cl_participants ap ON ((ap.id = s.action_party_id)))
+                LEFT JOIN cl_party_info ai ON ((ai.id = ap.info_id)))
+                WHERE s.start_time AT TIME ZONE 'UTC-3' > '2021-08-01'
+                AND s.action_id = 1 AND si.dn_type = 0 AND di.dn_type = 13 AND seq_order = 1
+                AND si.dn != '1000' AND si.dn != '1001'
+                GROUP BY si.dn
+                ORDER BY si.dn ASC              
+            )
+            SELECT Call_out.Calls_by_Operator_out
+            FROM Call_in
+            INNER JOIN Call_out ON Call_in.Operator_ID_in = Call_out.Operator_ID_out
+            INNER JOIN Canceled_calls ON Call_in.Operator_ID_in = Canceled_calls.ag_num
+            """)
+
+    try:
+        connection = psycopg2.connect(database=database,
+                                      user=user,
+                                      password=password,
+                                      host=host,
+                                      port=port
+                                      )
+
+        cursor_call_count = connection.cursor()
+        cursor_call_count.execute(str(sql_request))
+
+        operator_id = cursor_call_count.fetchall()
+
+    except (Exception, Error) as error:
+        print("Ошибка при работе с PostgreSQL", error)
+
+    finally:
+        if connection:
+            cursor_call_count.close()
+            connection.close()
+    list_to_str = ' '.join(map(str, operator_id))
+    list_to_str = list_to_str.replace("(", "")
+    list_to_str = list_to_str.replace(")", "")
+    list_to_str = list_to_str.rstrip(list_to_str[-1])
+
+    return list_to_str
+
+
+def get_operator_cancel_calls():
+    sql_request = (f"""
+            WITH
+            Canceled_calls AS (
+                SELECT count (*) AS Call_count, ag_num
+                FROM callcent_ag_dropped_calls
+                WHERE time_start AT TIME ZONE 'UTC' > '2021-08-01' 
+                AND reason_noanswerdesc != 'Answered' AND reason_noanswerdesc = 'Poll expired'
+                AND ag_num != '1000' AND ag_num != '1001' AND ag_num != '9999'
+                GROUP BY ag_num
+                ORDER BY ag_num
+            ),
+            Call_in AS (
+                SELECT to_dn AS Operator_ID_in, count (*) AS Calls_by_Operator_in
+                FROM callcent_queuecalls
+                WHERE ts_servicing != '00:00:00' AND time_start AT TIME ZONE 'UTC+3' > '2021-08-01' AND to_dn !=
+                '1000' AND to_dn != '1001' AND to_dn != '9999'
+                GROUP BY to_dn
+                ORDER BY to_dn ASC
+            ),
+            Call_out AS (
+                SELECT count (*) AS Calls_by_Operator_out, si.dn AS Operator_ID_out
+                FROM ((((((cl_segments s
+                JOIN cl_participants sp ON ((sp.id = s.src_part_id)))
+                JOIN cl_participants dp ON ((dp.id = s.dst_part_id)))
+                JOIN cl_party_info si ON ((si.id = sp.info_id)))
+                JOIN cl_party_info di ON ((di.id = dp.info_id)))
+                LEFT JOIN cl_participants ap ON ((ap.id = s.action_party_id)))
+                LEFT JOIN cl_party_info ai ON ((ai.id = ap.info_id)))
+                WHERE s.start_time AT TIME ZONE 'UTC-3' > '2021-08-01'
+                AND s.action_id = 1 AND si.dn_type = 0 AND di.dn_type = 13 AND seq_order = 1
+                AND si.dn != '1000' AND si.dn != '1001'
+                GROUP BY si.dn
+                ORDER BY si.dn ASC              
+            )
+            SELECT Canceled_calls.Call_count
+            FROM Call_in
+            INNER JOIN Call_out ON Call_in.Operator_ID_in = Call_out.Operator_ID_out
+            INNER JOIN Canceled_calls ON Call_in.Operator_ID_in = Canceled_calls.ag_num
+            """)
+
+    try:
+        connection = psycopg2.connect(database=database,
+                                      user=user,
+                                      password=password,
+                                      host=host,
+                                      port=port
+                                      )
+
+        cursor_call_count = connection.cursor()
+        cursor_call_count.execute(str(sql_request))
+
+        operator_id = cursor_call_count.fetchall()
+
+    except (Exception, Error) as error:
+        print("Ошибка при работе с PostgreSQL", error)
+
+    finally:
+        if connection:
+            cursor_call_count.close()
+            connection.close()
+    list_to_str = ' '.join(map(str, operator_id))
+    list_to_str = list_to_str.replace("(", "")
+    list_to_str = list_to_str.replace(")", "")
+    list_to_str = list_to_str.rstrip(list_to_str[-1])
+
+    return list_to_str
+
+
+def charts(request):
+    operator_id = get_operator_id()
+    calls_in = get_operator_in_calls()
+    calls_out = get_operator_out_calls()
+    calls_cancel = get_operator_cancel_calls()
+    call_by_operator = render(request, 'cc_reports/charts.html', {'title': 'Звонки по операторам',
+                                                                  'data_operator_id': operator_id,
+                                                                  'data_calls_in': calls_in,
+                                                                  'data_calls_out': calls_out,
+                                                                  'data_calls_cancel': calls_cancel})
+    print('Операторы:', operator_id)
+    print("Входящие:", calls_in)
+    print("Исходящие:", calls_out)
+    print("Потеряные:", calls_cancel)
     return call_by_operator
