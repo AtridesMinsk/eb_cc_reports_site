@@ -20,7 +20,7 @@ def get_data_cancelled_call(start_date, end_date):
             FROM callcent_ag_dropped_calls
             WHERE time_start AT TIME ZONE 'UTC' > '{start_date}'
                 AND time_end AT TIME ZONE 'UTC' < '{end_date}'
-                AND reason_noanswerdesc != 'Answered' AND reason_noanswerdesc = 'Poll expired'
+                AND reason_noanswerdesc != 'Answered' AND reason_noanswerdesc != 'Poll expired'
             """)
 
     try:
