@@ -543,8 +543,4 @@ def charts(request):
                                                                   'data_calls_in': calls_in,
                                                                   'data_calls_out': calls_out,
                                                                   'data_calls_cancel': calls_cancel})
-    print('Операторы:', operator_id)
-    print("Входящие:", calls_in)
-    print("Исходящие:", calls_out)
-    print("Потеряные:", calls_cancel)
     return call_by_operator
