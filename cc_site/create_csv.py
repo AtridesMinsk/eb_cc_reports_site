@@ -174,7 +174,7 @@ def calculate_days_count():
     return days_swap
 
 
-def csv_to_json(days_swap):
+def data_to_json(days_swap):
     data_in = []
     data_out = []
     data_can = []
@@ -204,18 +204,18 @@ def csv_to_json(days_swap):
         data_out.insert(0, [dt, outgoing_call_count])
         data_can.insert(0, [dt, cancelled_call_count])
     with open(f"static/incoming_c.json", "w") as file:
-        json.dump(data_in, file, indent=4, ensure_ascii=False)
+        json.dump(data_in, file, ensure_ascii=False)
     with open(f"static/outgoing_c.json", "w") as file:
-        json.dump(data_out, file, indent=4, ensure_ascii=False)
+        json.dump(data_out, file, ensure_ascii=False)
     with open(f"static/canceled_c.json", "w") as file:
-        json.dump(data_can, file, indent=4, ensure_ascii=False)
+        json.dump(data_can, file, ensure_ascii=False)
 
 
 def get_data():
     create_csv_file()
     days_swap = calculate_days_count()
     cor_data_average_call(days_swap)
-    csv_to_json(days_swap)
+    data_to_json(days_swap)
     print(datetime.now())
 
 
