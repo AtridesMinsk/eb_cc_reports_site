@@ -4,16 +4,23 @@
 {{title}}
 {% endblock %}
 
+{% load static %}
+
 {% block content %}
-<script src="https://code.highcharts.com/highcharts.js"></script>
+<!--<script src="https://code.highcharts.com/highcharts.js"></script>-->
 <script src="https://code.highcharts.com/modules/series-label.js"></script>
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
 <script src="https://code.highcharts.com/modules/export-data.js"></script>
 <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 
+<script src="https://code.highcharts.com/stock/highstock.js"></script>
+<script src="https://code.highcharts.com/stock/modules/data.js"></script>
+<script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/stock/modules/export-data.js"></script>
+
 
 <figure class="highcharts-figure">
-    <div id="container"></div>
+    <div id="container1"></div>
     <p class="highcharts-description">
         <code>
             <script type="text/javascript">
@@ -21,11 +28,7 @@
                 calls_in = [{{ data_calls_in }}]
                 calls_out = [{{ data_calls_out }}]
                 calls_canceled = [{{ data_calls_cancel }}]
-<!--                console.log(operator_id)-->
-<!--                console.log(calls_in)-->
-<!--                console.log(calls_in)-->
-<!--                console.log(calls_canceled)-->
-                Highcharts.chart('container', {
+                Highcharts.chart('container1', {
                     chart: {
                         type: 'column'
                     },
@@ -77,7 +80,91 @@
         </code>
     </p>
 </figure>
+<figure class="highcharts-figure">
+    <div id="container"></div>
+    <p class="highcharts-description">
+        <code>
+            <script type="text/javascript">
+                var seriesOptions = [],
+                    seriesCounter = 0,
+                    names = ['INCOMING', 'OUTGOING', 'CANCELED'];
 
+                /**
+                 * Create the chart when all data is loaded
+                 * @returns {undefined}
+                 */
+                function createChart() {
 
+                    Highcharts.stockChart('container', {
+
+                        rangeSelector: {
+                            selected: 0
+                        },
+                        title: {
+                        text: 'Общее количество вызовов по дням'
+                    },
+                        yAxis: {
+                            labels: {
+                                formatter: function () {
+                                    return (this.value > 0 ? ' + ' : '') + this.value + '%';
+                                }
+                            },
+                            plotLines: [{
+                                value: 0,
+                                width: 2,
+                                color: 'silver'
+                            }]
+                        },
+
+                        plotOptions: {
+                            series: {
+                                compare: 'percent',
+                                showInNavigator: true
+                            }
+                        },
+
+                        tooltip: {
+                            pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.change}%)<br/>',
+                            valueDecimals: 2,
+                            split: true
+                        },
+
+                        series: seriesOptions
+                    });
+                }
+
+                function success(data) {
+                    var name = this.url.match(/(incoming|outgoing|canceled)/)[0].toUpperCase();
+                    var i = names.indexOf(name);
+                    seriesOptions[i] = {
+                        name: name,
+                        data: data
+                    };
+
+                    // As we're loading the data asynchronously, we don't know what order it
+                    // will arrive. So we keep a counter and create the chart when all the data is loaded.
+                    seriesCounter += 1;
+
+                    if (seriesCounter === names.length) {
+                        createChart();
+                    }
+                }
+
+                Highcharts.getJSON(
+                    '{% static 'incoming_c.json' %}',
+                    success
+                );
+                Highcharts.getJSON(
+                    '{% static 'outgoing_c.json' %}',
+                    success
+                );
+                Highcharts.getJSON(
+                    '{% static 'canceled_c.json' %}',
+                    success
+                );
+            </script>
+        </code>
+    </p>
+</figure>
 
 {% endblock %}

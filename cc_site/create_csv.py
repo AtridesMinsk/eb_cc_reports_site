@@ -1,11 +1,11 @@
 import csv
-import datetime
+import json
 import time
 import psycopg2
 import schedule
 from connect_db import prod_password as password, prod_host as host, user, database, port
 from psycopg2 import Error
-from datetime import timedelta, date
+from datetime import timedelta, date, datetime
 
 
 def create_csv_file():
@@ -173,11 +173,48 @@ def calculate_days_count():
     return days_swap
 
 
+def csv_to_json(days_swap):
+    data_in = []
+    data_out = []
+    data_can = []
+    for i in range(0, days_swap):
+        today_date = date.today() - timedelta(days=i)
+        yesterday_date = date.today() - timedelta(days=i + 1)
+
+        date_start = time.strptime(f'{yesterday_date}', '%Y-%m-%d')
+        date_start_text = time.strftime('%Y-%m-%d', date_start)
+
+        date_end = time.strptime(f'{today_date}', '%Y-%m-%d')
+        date_end_text = time.strftime('%Y-%m-%d', date_end)
+
+        results_in = get_data_average_call(date_start_text, date_end_text)
+        results_out = get_data_outgoing_call(date_start_text, date_end_text)
+        results_can = get_data_cancelled_call(date_start_text, date_end_text)
+
+        incoming_call_count = results_in[0]
+        outgoing_call_count = results_out[0]
+        cancelled_call_count = results_can[0]
+        dt = time.mktime(date_start)
+        dt = int(dt)
+        dt = str(dt)
+        dt = dt + "000"
+        dt = int(dt)
+        data_in.insert(0, [dt, incoming_call_count])
+        data_out.insert(0, [dt, outgoing_call_count])
+        data_can.insert(0, [dt, cancelled_call_count])
+    with open(f"static/incoming_c.json", "w") as file:
+        json.dump(data_in, file, indent=4, ensure_ascii=False)
+    with open(f"static/outgoing_c.json", "w") as file:
+        json.dump(data_out, file, indent=4, ensure_ascii=False)
+    with open(f"static/canceled_c.json", "w") as file:
+        json.dump(data_can, file, indent=4, ensure_ascii=False)
+
+
 def get_data():
     create_csv_file()
     days_swap = calculate_days_count()
     cor_data_average_call(days_swap)
-    print(datetime.datetime.now())
+    csv_to_json(days_swap)
 
 
 def main():
