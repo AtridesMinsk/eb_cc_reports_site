@@ -1,6 +1,7 @@
 import csv
 import json
 import time
+import datetime
 import psycopg2
 import schedule
 from connect_db import prod_password as password, prod_host as host, user, database, port
@@ -215,7 +216,7 @@ def get_data():
     days_swap = calculate_days_count()
     cor_data_average_call(days_swap)
     csv_to_json(days_swap)
-    print(datetime.datetime.now())
+    print(datetime.now())
 
 
 def main():
