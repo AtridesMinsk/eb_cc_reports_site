@@ -215,6 +215,7 @@ def get_data():
     days_swap = calculate_days_count()
     cor_data_average_call(days_swap)
     csv_to_json(days_swap)
+    print(datetime.datetime.now())
 
 
 def main():
