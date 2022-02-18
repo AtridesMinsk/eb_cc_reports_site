@@ -236,48 +236,14 @@ def get_data_call_by_week_day():
         cursor_call_count.execute(str(sql_request))
 
         calls_count = cursor_call_count.fetchall()
-
-        monday = calls_count[0]
-        monday = list(monday)
-        monday[0] = "Понедельник"
-        monday = tuple(monday)
-        calls_count[0] = monday
-
-        tuesday = calls_count[1]
-        tuesday = list(tuesday)
-        tuesday[0] = "Вторник"
-        tuesday = tuple(tuesday)
-        calls_count[1] = tuesday
-
-        wednesday = calls_count[2]
-        wednesday = list(wednesday)
-        wednesday[0] = "Среда"
-        wednesday = tuple(wednesday)
-        calls_count[2] = wednesday
-
-        tuesday = calls_count[3]
-        tuesday = list(tuesday)
-        tuesday[0] = "Четверг"
-        tuesday = tuple(tuesday)
-        calls_count[3] = tuesday
-
-        friday = calls_count[4]
-        friday = list(friday)
-        friday[0] = "Пятница"
-        friday = tuple(friday)
-        calls_count[4] = friday
-
-        saturday = calls_count[5]
-        saturday = list(saturday)
-        saturday[0] = "Суббота"
-        saturday = tuple(saturday)
-        calls_count[5] = saturday
-
-        sunday = calls_count[6]
-        sunday = list(sunday)
-        sunday[0] = "Воскресенье"
-        sunday = tuple(sunday)
-        calls_count[6] = sunday
+        week_days = ("Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье")
+        for i in range(0, len(calls_count)):
+            if int(calls_count[i][0]) == i + 1:
+                week_day = calls_count[i]
+                week_day = list(week_day)
+                week_day[0] = week_days[i]
+                week_day = tuple(week_day)
+                calls_count[i] = week_day
 
     except (Exception, Error) as error:
         print("Ошибка при работе с PostgreSQL", error)
