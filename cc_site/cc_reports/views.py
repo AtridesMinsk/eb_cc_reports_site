@@ -189,22 +189,22 @@ def get_data_call_by_week_day():
     sql_request = f"""
                 WITH 
                 Canceled_calls AS (
-                    SELECT count (*) / {week_count} AS Call_count, to_char(time_start, 'Day') AS Day_of_the_week
+                    SELECT count (*) / {week_count} AS Call_count, to_char(time_start, 'ID') AS Day_of_the_week
                     FROM callcent_ag_dropped_calls 
                     WHERE time_start AT TIME ZONE 'UTC' > '2021-08-01' 
                     AND reason_noanswerdesc != 'Answered' AND reason_noanswerdesc = 'Poll expired'
                     AND ag_num != '1000' AND ag_num != '1001' AND ag_num != '9999'
-                    GROUP BY to_char(time_start, 'Day')
+                    GROUP BY to_char(time_start, 'ID')
                     ),
                 Call_in_count AS (
-                    SELECT count (*) / {week_count} AS Calls_count_in, to_char(time_start, 'Day') AS Day_of_the_week
+                    SELECT count (*) / {week_count} AS Calls_count_in, to_char(time_start, 'ID') AS Day_of_the_week
                     FROM callcent_queuecalls 
                     WHERE ts_servicing != '00:00:00' AND time_start AT TIME ZONE 'UTC+3' > '2021-08-01' 
                     AND to_dn != '1000' AND to_dn != '1001' AND to_dn != '9999'
-                    GROUP BY to_char(time_start, 'Day')
+                    GROUP BY to_char(time_start, 'ID')
                    ),
                 Call_out_count AS (SELECT count (*) / {week_count} AS Calls_count_out, 
-                to_char(s.start_time, 'Day') AS Day_of_the_week
+                to_char(s.start_time, 'ID') AS Day_of_the_week
                     FROM ((((((cl_segments s
                     JOIN cl_participants sp ON ((sp.id = s.src_part_id)))
                     JOIN cl_participants dp ON ((dp.id = s.dst_part_id)))
@@ -215,13 +215,13 @@ def get_data_call_by_week_day():
                     WHERE s.start_time AT TIME ZONE 'UTC-3' > '2021-08-01' 
                     AND s.action_id = 1 AND si.dn_type = 0 AND seq_order = 1 
                     AND si.dn != '1000' AND si.dn != '1001' AND di.dn_type = 13
-                    GROUP BY to_char(s.start_time, 'Day'))
+                    GROUP BY to_char(s.start_time, 'ID'))
                 SELECT Call_out_count.Day_of_the_week, Call_in_count.Calls_count_in, 
                 Call_out_count.Calls_count_out, Canceled_calls.Call_count
                 FROM Call_in_count
                 INNER JOIN Call_out_count ON Call_in_count.Day_of_the_week = Call_out_count.Day_of_the_week
                 INNER JOIN Canceled_calls ON  Call_in_count.Day_of_the_week = Canceled_calls.Day_of_the_week
-                ORDER BY Call_in_count.Day_of_the_week
+                ORDER BY Call_in_count.Day_of_the_week ASC
     """
 
     try:
@@ -236,6 +236,48 @@ def get_data_call_by_week_day():
         cursor_call_count.execute(str(sql_request))
 
         calls_count = cursor_call_count.fetchall()
+
+        monday = calls_count[0]
+        monday = list(monday)
+        monday[0] = "Понедельник"
+        monday = tuple(monday)
+        calls_count[0] = monday
+
+        tuesday = calls_count[1]
+        tuesday = list(tuesday)
+        tuesday[0] = "Вторник"
+        tuesday = tuple(tuesday)
+        calls_count[1] = tuesday
+
+        wednesday = calls_count[2]
+        wednesday = list(wednesday)
+        wednesday[0] = "Среда"
+        wednesday = tuple(wednesday)
+        calls_count[2] = wednesday
+
+        tuesday = calls_count[3]
+        tuesday = list(tuesday)
+        tuesday[0] = "Четверг"
+        tuesday = tuple(tuesday)
+        calls_count[3] = tuesday
+
+        friday = calls_count[4]
+        friday = list(friday)
+        friday[0] = "Пятница"
+        friday = tuple(friday)
+        calls_count[4] = friday
+
+        saturday = calls_count[5]
+        saturday = list(saturday)
+        saturday[0] = "Суббота"
+        saturday = tuple(saturday)
+        calls_count[5] = saturday
+
+        sunday = calls_count[6]
+        sunday = list(sunday)
+        sunday[0] = "Воскресенье"
+        sunday = tuple(sunday)
+        calls_count[6] = sunday
 
     except (Exception, Error) as error:
         print("Ошибка при работе с PostgreSQL", error)
