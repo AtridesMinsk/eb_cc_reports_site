@@ -268,9 +268,9 @@ def get_operator_id():
             WITH
             Canceled_calls AS (
                 SELECT count (*) AS Call_count, ag_num
-                FROM callcent_ag_dropped_calls
+                FROM callcent_ag_dropped_calls 
                 WHERE time_start AT TIME ZONE 'UTC' > '2021-08-01' 
-                AND reason_noanswerdesc != 'Answered' AND reason_noanswerdesc = 'Poll expired'
+                AND reason_noanswerdesc != 'Answered' AND reason_noanswerdesc != 'Poll expired' 
                 AND ag_num != '1000' AND ag_num != '1001' AND ag_num != '9999'
                 GROUP BY ag_num
                 ORDER BY ag_num
@@ -337,9 +337,9 @@ def get_operator_in_calls():
             WITH
             Canceled_calls AS (
                 SELECT count (*) AS Call_count, ag_num
-                FROM callcent_ag_dropped_calls
+                FROM callcent_ag_dropped_calls 
                 WHERE time_start AT TIME ZONE 'UTC' > '2021-08-01' 
-                AND reason_noanswerdesc != 'Answered' AND reason_noanswerdesc = 'Poll expired'
+                AND reason_noanswerdesc != 'Answered' AND reason_noanswerdesc != 'Poll expired' 
                 AND ag_num != '1000' AND ag_num != '1001' AND ag_num != '9999'
                 GROUP BY ag_num
                 ORDER BY ag_num
@@ -406,9 +406,9 @@ def get_operator_out_calls():
             WITH
             Canceled_calls AS (
                 SELECT count (*) AS Call_count, ag_num
-                FROM callcent_ag_dropped_calls
+                FROM callcent_ag_dropped_calls 
                 WHERE time_start AT TIME ZONE 'UTC' > '2021-08-01' 
-                AND reason_noanswerdesc != 'Answered' AND reason_noanswerdesc = 'Poll expired'
+                AND reason_noanswerdesc != 'Answered' AND reason_noanswerdesc != 'Poll expired' 
                 AND ag_num != '1000' AND ag_num != '1001' AND ag_num != '9999'
                 GROUP BY ag_num
                 ORDER BY ag_num
@@ -475,9 +475,9 @@ def get_operator_cancel_calls():
             WITH
             Canceled_calls AS (
                 SELECT count (*) AS Call_count, ag_num
-                FROM callcent_ag_dropped_calls
+                FROM callcent_ag_dropped_calls 
                 WHERE time_start AT TIME ZONE 'UTC' > '2021-08-01' 
-                AND reason_noanswerdesc != 'Answered' AND reason_noanswerdesc = 'Poll expired'
+                AND reason_noanswerdesc != 'Answered' AND reason_noanswerdesc != 'Poll expired' 
                 AND ag_num != '1000' AND ag_num != '1001' AND ag_num != '9999'
                 GROUP BY ag_num
                 ORDER BY ag_num
