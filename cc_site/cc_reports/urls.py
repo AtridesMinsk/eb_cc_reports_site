@@ -22,4 +22,5 @@ urlpatterns = [
     path('call_drop', views.drop_call, name='call_drop'),
     path('all_call_drop', views.all_drop_call, name='all_call_drop'),
     path('charts', views.charts, name='charts'),
+    path('regs_drop', views.all_drop_regs, name='regs_drop'),
 ]

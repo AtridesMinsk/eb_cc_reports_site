@@ -3,6 +3,8 @@ from datetime import datetime
 import psycopg2
 from django.shortcuts import render
 from django.core.paginator import Paginator
+from mysql.connector import connect, Error
+from connect_db import core_password, core_host, core_user, core_db, core_port
 from connect_db import prod_password as password, prod_host as host, user, database, port
 
 
@@ -550,3 +552,37 @@ def charts(request):
                                                                   'data_calls_out': calls_out,
                                                                   'data_calls_cancel': calls_cancel})
     return call_by_operator
+
+
+def get_data_all_drop_regs():
+    sql_request = ("""
+        SELECT ID, UserName, EMail, TelephoneNumber, DateRegistered
+        FROM Core.user
+        WHERE StatusID = 1 AND BirthDate = '1970-01-01 00:00:00' 
+        AND DateRegistered >= DATE_SUB(CURRENT_DATE, INTERVAL 0 DAY) AND TelephoneNumber != 0
+        ORDER BY ID DESC
+        """
+                   )
+
+    try:
+        with connect(
+                host=core_host,
+                user=core_user,
+                password=core_password,
+        ) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(sql_request)
+                result = cursor.fetchall()
+    except Error as e:
+        print(e)
+
+    return result
+
+
+def all_drop_regs(request):
+    dropped_regs = get_data_all_drop_regs()
+    paginator = Paginator(dropped_regs, 8)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'cc_reports/all_drop_reg.html',
+                  {'title': 'Незавершенные регистрации', 'reader': page_obj.object_list, 'page_obj': page_obj})

@@ -1,0 +1,50 @@
+{% extends 'cc_reports/base.html' %}
+
+{% block title%}
+{{title}}
+{% endblock %}
+
+{% block content %}
+    <div class="alert alert-warning mt-2">
+        <center>
+            <h2>{{title}}</h2>
+        </center>
+        <table border="0", align="center", cellpadding=5, class="table table-striped">
+            <tr>
+                <th>User ID</th>
+                <th>User Login</th>
+                <th>User E-Mail</th>
+                <th>Номер телефона</th>
+                <th>Дата регистрации</th>
+            </tr>
+                <col width="120" valign="top">
+                <col width="200" valign="top">
+                <col width="200" valign="top">
+                <col width="150" valign="top">
+                <col width="150" valign="top">
+            {% for row in reader %}
+                <tr>
+                    {% for x in row %} <td align="center">{{ x }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <div class="alert alert-warning mt-2">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+{% endblock %}
