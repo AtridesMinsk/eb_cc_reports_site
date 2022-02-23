@@ -582,8 +582,11 @@ def get_data_all_drop_regs():
 
 def all_drop_regs(request):
     dropped_regs = get_data_all_drop_regs()
+    count_dropped_regs = str(len(dropped_regs))
     paginator = Paginator(dropped_regs, 8)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, 'cc_reports/all_drop_reg.html',
-                  {'title': 'Незавершенные регистрации', 'reader': page_obj.object_list, 'page_obj': page_obj})
+    drop_regs = render(request, 'cc_reports/all_drop_reg.html', {'title': 'Незавершенные регистрации',
+                                                                 'reader': page_obj.object_list, 'page_obj': page_obj,
+                                                                 'count_dropped_regs': count_dropped_regs})
+    return drop_regs
