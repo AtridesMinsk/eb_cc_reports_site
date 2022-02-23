@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-car4giw=338a9ik=8o+4m30s-$%gi5ec^kmr%^zj3g$-%ttcjr
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
