@@ -556,13 +556,14 @@ def charts(request):
 
 def get_data_all_drop_regs():
     sql_request = ("""
-        SELECT ID, UserName, EMail, TelephoneNumber, DateRegistered
+        SELECT ID, UserName, EMail, TelephoneNumber, 
+        CONVERT_TZ(DateRegistered, @@session.time_zone, '+03:00') DateRegistered
         FROM Core.user
-        WHERE StatusID = 1 AND BirthDate = '1970-01-01 00:00:00' 
-        AND DateRegistered >= DATE_SUB(CURRENT_DATE, INTERVAL 0 DAY) AND TelephoneNumber != 0
+        WHERE StatusID = 1 AND BirthDate = '1970-01-01 00:00:00' AND TelephoneNumber != 0
+        AND CONVERT_TZ(DateRegistered, @@session.time_zone, '+03:00') >= DATE_SUB(CURRENT_DATE, INTERVAL 0 DAY) 
         ORDER BY ID DESC
         """
-                   )
+        )
 
     try:
         with connect(
