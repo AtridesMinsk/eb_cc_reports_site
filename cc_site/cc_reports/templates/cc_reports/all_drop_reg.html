@@ -5,6 +5,12 @@
 {% endblock %}
 
 {% block content %}
+    <script type='text/javascript'>
+    function reload_page() {
+      location.reload();
+    }
+    setInterval("reload_page()", 300000);
+    </script>
     <div class="alert alert-warning mt-2">
         <center>
             <h2>{{title}}</h2>
