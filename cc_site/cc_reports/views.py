@@ -541,16 +541,85 @@ def get_operator_cancel_calls():
     return list_to_str
 
 
+def get_drop_regs_count():
+    sql_request = ("""
+        SELECT 
+            count(*) AS count_regs
+        FROM Core.user
+        WHERE StatusID = 1 AND BirthDate = '1970-01-01 00:00:00'  AND TelephoneNumber != 0
+        GROUP BY convert(DateRegistered, DATE)
+        ORDER BY convert(DateRegistered, DATE) ASC
+        """
+                   )
+
+    try:
+        with connect(
+                host=core_host,
+                user=core_user,
+                password=core_password,
+        ) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(sql_request)
+                result = cursor.fetchall()
+    except Error as e:
+        print(e)
+
+    list_to_str = ' '.join(map(str, result))
+    list_to_str = list_to_str.replace("(", "")
+    list_to_str = list_to_str.replace(")", "")
+    list_to_str = list_to_str.rstrip(list_to_str[-1])
+    return list_to_str
+
+
+def get_drop_regs_date():
+    sql_request = ("""
+        SELECT 
+            convert(DateRegistered, DATE) AS DateRegistered
+        FROM Core.user
+        WHERE StatusID = 1 AND BirthDate = '1970-01-01 00:00:00'  AND TelephoneNumber != 0
+        GROUP BY convert(DateRegistered, DATE)
+        ORDER BY convert(DateRegistered, DATE) ASC
+        """
+                   )
+
+    try:
+        with connect(
+                host=core_host,
+                user=core_user,
+                password=core_password,
+        ) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(sql_request)
+                result = cursor.fetchall()
+    except Error as e:
+        print(e)
+
+    data_list = []
+
+    for i in range(0, len(result)):
+        date_str = result[i][0]
+        date = date_str.strftime("%Y""%m""%d")
+        data_list.append(date)
+
+    list_to_str = ', '.join(map(str, data_list))
+
+    return list_to_str
+
+
 def charts(request):
     operator_id = get_operator_id()
     calls_in = get_operator_in_calls()
     calls_out = get_operator_out_calls()
     calls_cancel = get_operator_cancel_calls()
+    drop_regs_day = get_drop_regs_date()
+    drop_regs_count = get_drop_regs_count()
     call_by_operator = render(request, 'cc_reports/charts.html', {'title': 'Звонки по операторам',
                                                                   'data_operator_id': operator_id,
                                                                   'data_calls_in': calls_in,
                                                                   'data_calls_out': calls_out,
-                                                                  'data_calls_cancel': calls_cancel})
+                                                                  'data_calls_cancel': calls_cancel,
+                                                                  'drop_regs_day': drop_regs_day,
+                                                                  'drop_regs_count': drop_regs_count})
     return call_by_operator
 
 
@@ -563,7 +632,7 @@ def get_data_all_drop_regs():
         AND CONVERT_TZ(DateRegistered, @@session.time_zone, '+03:00') >= DATE_SUB(CURRENT_DATE, INTERVAL 0 DAY) 
         ORDER BY ID DESC
         """
-        )
+                   )
 
     try:
         with connect(

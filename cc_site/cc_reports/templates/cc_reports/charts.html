@@ -166,5 +166,56 @@
         </code>
     </p>
 </figure>
+<figure class="highcharts-figure">
+    <div id="container2"></div>
+    <p class="highcharts-description">
+        <code>
+            <script type="text/javascript">
+                drop_regs_day = [{{ drop_regs_day }}]
+                console.log(drop_regs_day)
+                drop_regs_count = [{{ drop_regs_count }}]
+                console.log(calls_canceled)
+                Highcharts.chart('container2', {
+                    chart: {
+                        type: 'line'
+                    },
+                    title: {
+                        text: 'Общее количество незавершенных регистраций по дням'
+                    },
+                    xAxis: {
+                        type: 'datetime',
+                        categories: drop_regs_day
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: {
+                            text: 'Количество незавершенных регистраций'
+                        }
+                    },
+                    tooltip: {
+                        headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                        pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                                     '<td style="padding:0"><b>{point.y:.1f}</b></td></tr>',
+                        footerFormat: '</table>',
+                        valueDecimals: 0,
+                        shared: true,
+                        useHTML: true
+                    },
+                    plotOptions: {
+                        column: {
+                            pointPadding: 0.2,
+                            borderWidth: 0
+                        }
+                    },
+                    series: [{
+                        name: 'Пропущеные звонки',
+                        data: drop_regs_count
+
+                    }]
+                });
+            </script>
+        </code>
+    </p>
+</figure>
 
 {% endblock %}
