@@ -546,7 +546,7 @@ def get_drop_regs_count():
         SELECT 
             count(*) AS count_regs
         FROM Core.user
-        WHERE StatusID = 1 AND BirthDate = '1970-01-01 00:00:00'  AND TelephoneNumber != 0
+        WHERE StatusID = 1 AND BirthDate = '1970-01-01 00:00:00'  AND TelephoneNumber != 0 AND ID != 100151
         GROUP BY convert(DateRegistered, DATE)
         ORDER BY convert(DateRegistered, DATE) ASC
         """
@@ -574,9 +574,9 @@ def get_drop_regs_count():
 def get_drop_regs_date():
     sql_request = ("""
         SELECT 
-            convert(DateRegistered, DATE) AS DateRegistered
+            CONVERT_TZ(DateRegistered, @@session.time_zone, '+03:00') DateRegistered
         FROM Core.user
-        WHERE StatusID = 1 AND BirthDate = '1970-01-01 00:00:00'  AND TelephoneNumber != 0
+        WHERE StatusID = 1 AND BirthDate = '1970-01-01 00:00:00'  AND TelephoneNumber != 0 AND ID != 100151
         GROUP BY convert(DateRegistered, DATE)
         ORDER BY convert(DateRegistered, DATE) ASC
         """
@@ -628,7 +628,7 @@ def get_data_all_drop_regs():
         SELECT ID, UserName, EMail, TelephoneNumber, 
         CONVERT_TZ(DateRegistered, @@session.time_zone, '+03:00') DateRegistered
         FROM Core.user
-        WHERE StatusID = 1 AND BirthDate = '1970-01-01 00:00:00' AND TelephoneNumber != 0
+        WHERE StatusID = 1 AND BirthDate = '1970-01-01 00:00:00' AND TelephoneNumber != 0 AND ID != 100151
         AND CONVERT_TZ(DateRegistered, @@session.time_zone, '+03:00') >= DATE_SUB(CURRENT_DATE, INTERVAL 0 DAY) 
         ORDER BY ID DESC
         """
