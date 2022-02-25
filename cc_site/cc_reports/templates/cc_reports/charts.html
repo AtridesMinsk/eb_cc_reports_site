@@ -177,14 +177,17 @@
                 console.log(calls_canceled)
                 Highcharts.chart('container2', {
                     chart: {
-                        type: 'line'
+                        type: 'column'
                     },
                     title: {
                         text: 'Общее количество незавершенных регистраций по дням'
                     },
                     xAxis: {
-                        type: 'datetime',
-                        categories: drop_regs_day
+                            title: {
+                                text: ' '
+                            },
+                        categories: drop_regs_day,
+                        crosshair: true
                     },
                     yAxis: {
                         min: 0,
@@ -195,7 +198,7 @@
                     tooltip: {
                         headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
                         pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
-                                     '<td style="padding:0"><b>{point.y:.1f}</b></td></tr>',
+                                     '<td style="padding:0"><b>{point.y:.0f}</b></td></tr>',
                         footerFormat: '</table>',
                         valueDecimals: 0,
                         shared: true,
