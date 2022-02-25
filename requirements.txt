@@ -1,8 +1,7 @@
 psycopg2-binary
-django~=4.0.2
+django
 connect_db
-pandas==1.4.1
-matplotlib~=3.5.1
-schedule~=1.1.0
-psycopg2~=2.9.3
-mysql-connector-python~=8.0.28
+pandas
+matplotlib
+schedule
+mysql-connector-python
