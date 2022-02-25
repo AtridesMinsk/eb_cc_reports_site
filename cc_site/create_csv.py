@@ -147,7 +147,7 @@ def cor_data_average_call(days_swap):
         outgoing_call_count = results_out[0]
         cancelled_call_count = results_can[0]
 
-        with open("cc_data.csv", "a", newline='') as file:
+        with open("static/cc_data.csv", "a", newline='') as file:
             writer = csv.writer(file)
 
             writer.writerow(

@@ -10,7 +10,7 @@ from connect_db import prod_password as password, prod_host as host, user, datab
 
 def average_call_rep(request):
     csv_data = []
-    with open('cc_data.csv', 'rU') as csv_file:
+    with open('static/cc_data.csv', 'rU') as csv_file:
         reader = csv.reader(csv_file, dialect='excel')
         for row in reader:
             csv_data.append(row)
