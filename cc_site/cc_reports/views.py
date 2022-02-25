@@ -547,8 +547,8 @@ def get_drop_regs_count():
             count(*) AS count_regs
         FROM Core.user
         WHERE StatusID = 1 AND BirthDate = '1970-01-01 00:00:00'  AND TelephoneNumber != 0 AND ID != 100151
-        GROUP BY convert(DateRegistered, DATE)
-        ORDER BY convert(DateRegistered, DATE) ASC
+        GROUP BY convert(CONVERT_TZ(DateRegistered, @@session.time_zone, '+03:00'), DATE)
+        ORDER BY convert(CONVERT_TZ(DateRegistered, @@session.time_zone, '+03:00'), DATE) ASC
         """
                    )
 
@@ -561,8 +561,14 @@ def get_drop_regs_count():
             with connection.cursor() as cursor:
                 cursor.execute(sql_request)
                 result = cursor.fetchall()
-    except Error as e:
-        print(e)
+
+    except Exception as ex:
+        print("Connection refused")
+        print(ex)
+
+    finally:
+        # print("connection close")
+        connection.close()
 
     list_to_str = ' '.join(map(str, result))
     list_to_str = list_to_str.replace("(", "")
@@ -574,11 +580,11 @@ def get_drop_regs_count():
 def get_drop_regs_date():
     sql_request = ("""
         SELECT 
-            CONVERT_TZ(DateRegistered, @@session.time_zone, '+03:00') DateRegistered
+            convert(CONVERT_TZ(DateRegistered, @@session.time_zone, '+03:00'), DATE) DateRegistered
         FROM Core.user
         WHERE StatusID = 1 AND BirthDate = '1970-01-01 00:00:00'  AND TelephoneNumber != 0 AND ID != 100151
-        GROUP BY convert(DateRegistered, DATE)
-        ORDER BY convert(DateRegistered, DATE) ASC
+        GROUP BY convert(CONVERT_TZ(DateRegistered, @@session.time_zone, '+03:00'), DATE)
+        ORDER BY convert(CONVERT_TZ(DateRegistered, @@session.time_zone, '+03:00'), DATE) ASC
         """
                    )
 
@@ -591,14 +597,20 @@ def get_drop_regs_date():
             with connection.cursor() as cursor:
                 cursor.execute(sql_request)
                 result = cursor.fetchall()
-    except Error as e:
-        print(e)
+
+    except Exception as ex:
+        print("Connection refused")
+        print(ex)
+
+    finally:
+        # print("connection close")
+        connection.close()
 
     data_list = []
 
     for i in range(0, len(result)):
         date_str = result[i][0]
-        date = date_str.strftime("%Y""%m""%d")
+        date = date_str.strftime("%Y%m%d")
         data_list.append(date)
 
     list_to_str = ', '.join(map(str, data_list))
