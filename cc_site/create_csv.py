@@ -10,7 +10,7 @@ from datetime import timedelta, date, datetime
 
 
 def create_csv_file():
-    with open("cc_data.csv", "w", newline='') as file:
+    with open("static/cc_data.csv", "w", newline='') as file:
         csv.writer(file)
 
 
