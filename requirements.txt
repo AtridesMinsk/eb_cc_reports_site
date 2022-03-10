@@ -5,3 +5,4 @@ pandas
 matplotlib
 schedule
 mysql-connector-python
+requests
