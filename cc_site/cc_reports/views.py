@@ -1,6 +1,8 @@
 import csv
-from datetime import datetime
+import requests
 import psycopg2
+
+from datetime import datetime
 from django.shortcuts import render
 from django.core.paginator import Paginator
 from mysql.connector import connect, Error
@@ -179,7 +181,7 @@ def get_data_calls_by_operator():
     return in_calls
 
 
-def get_data_call_by_week_day():
+def get_average_data_call_by_week_day():
     date_format = "%m/%d/%Y"
     a = datetime.now()
     b = datetime.strptime('1/08/2021', date_format)
@@ -204,6 +206,77 @@ def get_data_call_by_week_day():
                     GROUP BY to_char(time_start, 'ID')
                    ),
                 Call_out_count AS (SELECT count (*) / {week_count} AS Calls_count_out, 
+                to_char(s.start_time, 'ID') AS Day_of_the_week
+                    FROM ((((((cl_segments s
+                    JOIN cl_participants sp ON ((sp.id = s.src_part_id)))
+                    JOIN cl_participants dp ON ((dp.id = s.dst_part_id)))
+                    JOIN cl_party_info si ON ((si.id = sp.info_id)))
+                    JOIN cl_party_info di ON ((di.id = dp.info_id)))
+                    LEFT JOIN cl_participants ap ON ((ap.id = s.action_party_id)))
+                    LEFT JOIN cl_party_info ai ON ((ai.id = ap.info_id)))
+                    WHERE s.start_time AT TIME ZONE 'UTC-3' > '2021-08-01' 
+                    AND s.action_id = 1 AND si.dn_type = 0 AND seq_order = 1 
+                    AND si.dn != '1000' AND si.dn != '1001' AND di.dn_type = 13
+                    GROUP BY to_char(s.start_time, 'ID'))
+                SELECT Call_out_count.Day_of_the_week, Call_in_count.Calls_count_in, 
+                Call_out_count.Calls_count_out, Canceled_calls.Call_count
+                FROM Call_in_count
+                INNER JOIN Call_out_count ON Call_in_count.Day_of_the_week = Call_out_count.Day_of_the_week
+                INNER JOIN Canceled_calls ON  Call_in_count.Day_of_the_week = Canceled_calls.Day_of_the_week
+                ORDER BY Call_in_count.Day_of_the_week ASC
+    """
+
+    try:
+        connection = psycopg2.connect(database=database,
+                                      user=user,
+                                      password=password,
+                                      host=host,
+                                      port=port
+                                      )
+
+        cursor_call_count = connection.cursor()
+        cursor_call_count.execute(str(sql_request))
+
+        calls_count = cursor_call_count.fetchall()
+        week_days = ("Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье")
+        for i in range(0, len(calls_count)):
+            if int(calls_count[i][0]) == i + 1:
+                week_day = calls_count[i]
+                week_day = list(week_day)
+                week_day[0] = week_days[i]
+                week_day = tuple(week_day)
+                calls_count[i] = week_day
+
+    except (Exception, Error) as error:
+        print("Ошибка при работе с PostgreSQL", error)
+
+    finally:
+        if connection:
+            cursor_call_count.close()
+            connection.close()
+
+    return calls_count
+
+
+def get_data_call_by_week_day():
+    sql_request = f"""
+                WITH 
+                Canceled_calls AS (
+                    SELECT count (*) AS Call_count, to_char(time_start, 'ID') AS Day_of_the_week
+                    FROM callcent_ag_dropped_calls 
+                    WHERE time_start AT TIME ZONE 'UTC' > '2021-08-01' 
+                    AND reason_noanswerdesc != 'Answered' AND reason_noanswerdesc = 'Poll expired'
+                    AND ag_num != '1000' AND ag_num != '1001' AND ag_num != '9999'
+                    GROUP BY to_char(time_start, 'ID')
+                    ),
+                Call_in_count AS (
+                    SELECT count (*) AS Calls_count_in, to_char(time_start, 'ID') AS Day_of_the_week
+                    FROM callcent_queuecalls 
+                    WHERE ts_servicing != '00:00:00' AND time_start AT TIME ZONE 'UTC+3' > '2021-08-01' 
+                    AND to_dn != '1000' AND to_dn != '1001' AND to_dn != '9999'
+                    GROUP BY to_char(time_start, 'ID')
+                   ),
+                Call_out_count AS (SELECT count (*) AS Calls_count_out, 
                 to_char(s.start_time, 'ID') AS Day_of_the_week
                     FROM ((((((cl_segments s
                     JOIN cl_participants sp ON ((sp.id = s.src_part_id)))
@@ -671,3 +744,44 @@ def all_drop_regs(request):
                                                                  'reader': page_obj.object_list, 'page_obj': page_obj,
                                                                  'count_dropped_regs': count_dropped_regs})
     return drop_regs
+
+
+def get_info_by_ip(ip):
+    try:
+        response = requests.get(url=f'http://ip-api.com/json/{ip}').json()
+
+        data = {
+            '[IP]': response.get('query'),
+            '[Int prov]': response.get('isp'),
+            '[Org]': response.get('org'),
+            '[Country]': response.get('country'),
+            '[Region Name]': response.get('regionName'),
+            '[City]': response.get('city'),
+            '[ZIP]': response.get('zip'),
+            '[Lat]': response.get('lat'),
+            '[Lon]': response.get('lon'),
+        }
+
+        # for k, v in data.items():
+        #     print(f'{k} : {v}')
+
+    except requests.exceptions.ConnectionError:
+        print('[!] Please check your connection!')
+
+    return response
+
+
+def info_by_ip(request):
+    ip_address = request.GET.get('object')
+    ip_info = get_info_by_ip(ip_address)
+    return render(request, 'cc_reports/ip_info.html',
+                  {'title': 'Информация об IP адресе',
+                   'IP': ip_info.get('query'),
+                   'Int_prov': ip_info.get('isp'),
+                   'Org': ip_info.get('org'),
+                   'Country': ip_info.get('country'),
+                   'Region_Name': ip_info.get('regionName'),
+                   'City': ip_info.get('city'),
+                   'ZIP': ip_info.get('zip'),
+                   'Lat': ip_info.get('lat'),
+                   'Lon': ip_info.get('lon')})

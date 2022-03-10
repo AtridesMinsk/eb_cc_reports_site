@@ -1,0 +1,36 @@
+{% extends 'cc_reports/base.html' %}
+
+{% block title%}
+{{title}}
+{% endblock %}
+
+{% block content %}
+    <div class="alert alert-warning mt-2">
+        <center>
+            <h2>{{title}}</h2>
+        </center>
+    </div>
+    <div class="alert alert-warning mt-2">
+    <form method="GET" action="/ip_info">
+        <label for="ip_address">Введите IP адрес: </label>
+        <input id="ip_address" type="text" name="object" value="194.158.211.160"> <!-- В "value=", можно внести значение по умолчанию -->
+        <input type="submit" value="OK">
+    </form>
+    </div>
+
+    <div class="alert alert-warning mt-2">
+        <table border="0", align="center", cellpadding=5, class="table table-striped">
+            <td>
+                <b>IP - адрес:</b> {{ IP }}<br>
+                <b>Интернет провайдер:</b> {{ Int_prov }}<br>
+                <b>Организация:</b> {{ Org }}<br>
+                <b>Страна:</b> {{ Country }}<br>
+                <b>Регион:</b> {{ Region_Name }}<br>
+                <b>Город:</b> {{ City }}<br>
+                <b>Почтовый индекс:</b> {{ ZIP }}<br>
+                <b>Координаты (ширина):</b> {{ Lat }}<br>
+                <b>Координаты (долгота):</b> {{ Lon }}<br>
+            </td>
+        </table>
+    </div>
+{% endblock %}

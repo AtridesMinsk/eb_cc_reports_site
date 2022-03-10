@@ -87,6 +87,8 @@
         <code>
             <script type="text/javascript">
                 drop_regs_day = [{{ drop_regs_day }}]
+<!--                function Update(element){-->
+<!--                var newdata = element.innerHTML(drop_regs_day);}-->
                 console.log(drop_regs_day)
                 drop_regs_count = [{{ drop_regs_count }}]
                 console.log(calls_canceled)
@@ -101,6 +103,7 @@
                             title: {
                                 text: ' '
                             },
+<!--                        categories: newdata,-->
                         categories: drop_regs_day,
                         crosshair: true
                     },

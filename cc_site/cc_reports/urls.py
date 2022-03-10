@@ -23,4 +23,5 @@ urlpatterns = [
     path('all_call_drop', views.all_drop_call, name='all_call_drop'),
     path('charts', views.charts, name='charts'),
     path('regs_drop', views.all_drop_regs, name='regs_drop'),
+    path('ip_info', views.info_by_ip, name='ip_info'),
 ]
