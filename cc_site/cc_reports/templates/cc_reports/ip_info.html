@@ -28,9 +28,18 @@
                 <b>Регион:</b> {{ Region_Name }}<br>
                 <b>Город:</b> {{ City }}<br>
                 <b>Почтовый индекс:</b> {{ ZIP }}<br>
-                <b>Координаты (ширина):</b> {{ Lat }}<br>
-                <b>Координаты (долгота):</b> {{ Lon }}<br>
+                <b>Координаты:</b> {{ Lat }}, {{ Lon }}<br>
             </td>
         </table>
     </div>
+<div id='map' style='width: 1296px; height: 300px;'></div>
+    <script>
+      mapboxgl.accessToken = 'pk.eyJ1IjoiYXRyaWRlcyIsImEiOiJjbDBsMDJwNzUwNXN5M2lwbGcycTFodzFjIn0.YTPf4na3xgODqBwC-f8G1A';
+      var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: [{{ Lon }}, {{ Lat }}], // starting position [lng, lat]
+        zoom: 15 // starting zoom
+      });
+    </script>
 {% endblock %}

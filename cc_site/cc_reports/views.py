@@ -750,21 +750,6 @@ def get_info_by_ip(ip):
     try:
         response = requests.get(url=f'http://ip-api.com/json/{ip}').json()
 
-        data = {
-            '[IP]': response.get('query'),
-            '[Int prov]': response.get('isp'),
-            '[Org]': response.get('org'),
-            '[Country]': response.get('country'),
-            '[Region Name]': response.get('regionName'),
-            '[City]': response.get('city'),
-            '[ZIP]': response.get('zip'),
-            '[Lat]': response.get('lat'),
-            '[Lon]': response.get('lon'),
-        }
-
-        # for k, v in data.items():
-        #     print(f'{k} : {v}')
-
     except requests.exceptions.ConnectionError:
         print('[!] Please check your connection!')
 
@@ -774,6 +759,7 @@ def get_info_by_ip(ip):
 def info_by_ip(request):
     ip_address = request.GET.get('object')
     ip_info = get_info_by_ip(ip_address)
+
     return render(request, 'cc_reports/ip_info.html',
                   {'title': 'Информация об IP адресе',
                    'IP': ip_info.get('query'),
@@ -783,5 +769,5 @@ def info_by_ip(request):
                    'Region_Name': ip_info.get('regionName'),
                    'City': ip_info.get('city'),
                    'ZIP': ip_info.get('zip'),
-                   'Lat': ip_info.get('lat'),
-                   'Lon': ip_info.get('lon')})
+                   'Lat': str(ip_info.get('lat')).replace(",", "."),
+                   'Lon': str(ip_info.get('lon')).replace(",", ".")})
