@@ -109,20 +109,9 @@ def get_data(last_month_date):
 
 
 def main():
-    last_month_date = '2021-08-31'
-    get_data(last_month_date)
-    last_month_date = '2021-09-30'
-    get_data(last_month_date)
-    last_month_date = '2021-10-31'
-    get_data(last_month_date)
-    last_month_date = '2021-11-30'
-    get_data(last_month_date)
-    last_month_date = '2021-12-31'
-    get_data(last_month_date)
-    last_month_date = '2022-01-31'
-    get_data(last_month_date)
-    last_month_date = '2022-02-28'
-    get_data(last_month_date)
+    last_month_date = ('2021-08-31', '2021-09-30', '2021-10-31', '2021-11-30', '2021-12-31', '2022-01-31', '2022-02-28')
+    for date in last_month_date:
+        get_data(date)
 
 
 if __name__ == '__main__':
