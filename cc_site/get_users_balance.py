@@ -1,4 +1,7 @@
 import csv
+import datetime
+from datetime import datetime, timedelta
+
 from mysql.connector import connect, Error
 from connect_db import core_password, core_host, core_user, core_db, core_port
 
@@ -65,17 +68,23 @@ def get_balance_by_id(user_id, end_date):
     return result
 
 
-def main():
-    last_month_date = '2021-8-31'
+def create_csv_file(date):
+    with open(f"balance_on_{date}.csv", "w", newline='') as file:
+        csv.writer(file)
+
+
+def get_data(last_month_date):
+    date = datetime.strptime(last_month_date, '%Y-%m-%d')
+    time_start = datetime.now()
+    create_csv_file(last_month_date)
     userid = get_userid_list(last_month_date)
-    print('Всего найдено пользователей:', len(userid), '\n' 'Последний пользователь:', userid[-1])
 
     for i in userid:
         data = get_balance_by_id(i, last_month_date)
         user_id = data[0][0]
         user_balance = float(data[0][1])
         last_date = data[0][2]
-        print(user_id, user_balance, last_date)
+        # print(user_id, user_balance, last_date)
 
         if user_balance != 0:
             with open(f"balance_on_{last_month_date}.csv", "a", newline='') as file:
@@ -88,6 +97,32 @@ def main():
                         last_date,
                     )
                 )
+    print('Всего найдено записей на конец', date.strftime("%B"), ':', len(userid), '\n' 'Последний пользователь:', userid[-1])
+    with open(f"balance_on_{last_month_date}.csv", "r") as file:
+        data = list(file)
+        print('Всего записей с не нулевым балансом:', len(data))
+        print('Отфильтровано записей с нулевым балансом:', len(userid) - len(data))
+
+    time_stop = datetime.now()
+    work_time: timedelta = time_stop - time_start
+    print('Затрачено времени на обработку:', work_time, '\n')
+
+
+def main():
+    last_month_date = '2021-08-31'
+    get_data(last_month_date)
+    last_month_date = '2021-09-30'
+    get_data(last_month_date)
+    last_month_date = '2021-10-31'
+    get_data(last_month_date)
+    last_month_date = '2021-11-30'
+    get_data(last_month_date)
+    last_month_date = '2021-12-31'
+    get_data(last_month_date)
+    last_month_date = '2022-01-31'
+    get_data(last_month_date)
+    last_month_date = '2022-02-28'
+    get_data(last_month_date)
 
 
 if __name__ == '__main__':
