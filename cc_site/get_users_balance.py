@@ -1,16 +1,15 @@
 import csv
 from mysql.connector import connect, Error
-from datetime import datetime
 from connect_db import core_password, core_host, core_user, core_db, core_port
 
 
-def get_userid_list():
+def get_userid_list(end_date):
     sql_request = (f"""
                     SELECT distinct UserID 
                     FROM Core.usertransactions
                     WHERE BeforeBalance IS NOT null 
                     AND BeforeBalance / 100 != 0 
-                    AND DateCreated between '2021-01-01' AND '2021-12-31'
+                    AND DateCreated between '2021-01-01' AND '{end_date}'
                     """
                    )
 
@@ -19,6 +18,8 @@ def get_userid_list():
                 host=core_host,
                 user=core_user,
                 password=core_password,
+                db=core_db,
+                port=core_port,
         ) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(sql_request)
@@ -35,7 +36,7 @@ def get_userid_list():
     return userid_list
 
 
-def get_balance_by_id(user_id):
+def get_balance_by_id(user_id, end_date):
     sql_request = (f"""
                 SELECT UserID, BeforeBalance / 100, DateCreated 
                 FROM Core.usertransactions AS ab
@@ -43,7 +44,7 @@ def get_balance_by_id(user_id):
                 DateCreated = (SELECT MAX(DateCreated) FROM Core.usertransactions AS ab2 
                 WHERE BeforeBalance IS NOT null 
                 AND DateCreated between '2021-01-01' 
-                AND '2021-12-31' AND UserID = {user_id})
+                AND '{end_date}' AND UserID = {user_id})
                 """
                    )
     # print(sql_request)
@@ -52,6 +53,8 @@ def get_balance_by_id(user_id):
                 host=core_host,
                 user=core_user,
                 password=core_password,
+                db=core_db,
+                port=core_port,
         ) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(sql_request)
@@ -63,18 +66,19 @@ def get_balance_by_id(user_id):
 
 
 def main():
-    userid = get_userid_list()
+    last_month_date = '2021-8-31'
+    userid = get_userid_list(last_month_date)
     print('Всего найдено пользователей:', len(userid), '\n' 'Последний пользователь:', userid[-1])
 
     for i in userid:
-        data = get_balance_by_id(i)
+        data = get_balance_by_id(i, last_month_date)
         user_id = data[0][0]
         user_balance = float(data[0][1])
         last_date = data[0][2]
         print(user_id, user_balance, last_date)
 
         if user_balance != 0:
-            with open("balance.csv", "a", newline='') as file:
+            with open(f"balance_on_{last_month_date}.csv", "a", newline='') as file:
                 writer = csv.writer(file)
 
                 writer.writerow(
