@@ -97,7 +97,7 @@ def get_data(last_month_date):
                         last_date,
                     )
                 )
-    print('Всего найдено записей на конец', date.strftime("%B"), ':',
+    print('Всего найдено записей на конец', date.strftime("%B %Y"), ':',
           len(userid), '\n' 'Последний пользователь:', userid[-1])
     with open(f"balance_on_{last_month_date}.csv", "r") as file:
         data = list(file)
